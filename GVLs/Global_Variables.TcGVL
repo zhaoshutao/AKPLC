@@ -14,13 +14,19 @@ VAR_GLOBAL
 	PositionBiasDone:BOOL;
 (*回程差*)
 	HysteresisError:LREAL;
+	HysteresisError_PhaseUpper:LREAL:=0.1;
+	HysteresisError_PhaseLower:LREAL:=0.1;
 (*光栅漂移误差阈值*)
 	LEDriftErrorThreshold:LREAL:=0.001;
+	LEDriftErrorThreshold_PhaseUpper:LREAL:=0.001;
+	LEDriftErrorThreshold_PhaseLower:LREAL:=0.001;
 (*Lag Distance threshold*)
 	PosDiff_LeftTopLin: LREAL:=0.5;
 	PosDiff_RightTopLin:LREAL:=0.5;
 	PosDiff_LeftBottomLin:LREAL:=0.5;
 	PosDiff_RightBottomLin:LREAL:=0.5;
+	PosDiff_PhaseUpperLin:LREAL:=0.5;
+	PosDiff_PhaseLowerLin:LREAL:=0.5;
 (*UserMode Threshold*)
 	Threshold_UserTopPos: LREAL:=0.5;
 	Threshold_UserBottomPos: LREAL:=0.5;
@@ -100,7 +106,7 @@ VAR_GLOBAL
 (*simulation OR NOT*)
 	simulation:BOOL;
 (*USELinearEncoeder*)
-	USELinearEncoeder:BOOL:=TRUE;
+	USELinearEncoder:BOOL:=TRUE;
 (*restartTwinCAT*)
 	m_restartTC:BOOL;
 (*Plc_EmergencyStop *)
@@ -121,6 +127,10 @@ VAR_GLOBAL
 	LS_RightBottom_Bottom  :BOOL;
 	Unreach_LS_Top:BOOL;
 	Unreach_LS_Bottom:BOOL;
+	LS_PhaseUpper_Entrance  :BOOL;
+	LS_PhaseUpper_Exit  :BOOL;
+	LS_PhaseLower_Entrance :BOOL;
+	LS_PhaseLower_Exit  :BOOL;
 (*kill switch*)
 	KS_LeftTop_Far_Contact1:BOOL;
 	KS_LeftTop_Far_Contact2:BOOL;
@@ -130,6 +140,10 @@ VAR_GLOBAL
 	KS_LeftBottom_Far_Contact2:BOOL;
 	KS_RightBottom_Far_Contact1:BOOL;
 	KS_RightBottom_Far_Contact2:BOOL;
+	KS_PhaseUpper_Exit_Contact1:BOOL;
+	KS_PhaseUpper_Exit_Contact2:BOOL;
+	KS_PhaseLower_Exit_Contact1:BOOL;
+	KS_PhaseLower_Exit_Contact2:BOOL;
 	
 	KS_LeftTop_Near_Contact1:BOOL;
 	KS_LeftTop_Near_Contact2:BOOL;
@@ -139,6 +153,10 @@ VAR_GLOBAL
 	KS_LeftBottom_Near_Contact2:BOOL;
 	KS_RightBottom_Near_Contact1:BOOL;
 	KS_RightBottom_Near_Contact2:BOOL;
+	KS_PhaseUpper_Entrance_Contact1:BOOL;
+	KS_PhaseUpper_Entrance_Contact2:BOOL;
+	KS_PhaseLower_Entrance_Contact1:BOOL;
+	KS_PhaseLower_Entrance_Contact2:BOOL;
 (*E-STOP*)
 	KS_CabinetEmergency_contact1:BOOL;
 	KS_CabinetEmergency_contact2:BOOL;
@@ -147,29 +165,36 @@ VAR_GLOBAL
 	KS_handEmergency2_Contact1:BOOL;
 	KS_handEmergency2_Contact2:BOOL;
 	KS_softEmergency2_Contact:BOOL;
+(*AX5805_ErrorAsk*)	
+	AX5805_ErrorAsk:BOOL;
 (*aixs_ref*)
 	LeftTopLin: axis_ref;
 	RightTopLin:axis_ref;
 	LeftBottomLin:axis_ref;
 	RightBottomLin:axis_ref;
+	PhaseUpperLin:axis_ref;
+	PhaseLowerLin:axis_ref;
 (*axis Position*)
 	Pos_LeftTopLin: LREAL;
 	Pos_RightTopLin:LREAL;
 	Pos_LeftBottomLin:LREAL;
 	Pos_RightBottomLin:LREAL;
-(*********)
-	LB_TestRecord:LREAL;
-	RB_TestRecord:LREAL;
+	Pos_PhaseUpperLin:LREAL;
+	Pos_PhaseLowerLin:LREAL;
 (*axis Velocity*)
 	Velo_LeftTopLin: LREAL;
 	Velo_RightTopLin:LREAL;
 	Velo_LeftBottomLin:LREAL;
 	Velo_RightBottomLin:LREAL;
+	Velo_PhaseUpperLin:LREAL;
+	Velo_PhaseLowerLin:LREAL;
 (*Lag Distance*)
 	PosDiff_LeftTopLin_actual: LREAL;
 	PosDiff_RightTopLin_actual:LREAL;
 	PosDiff_LeftBottomLin_actual:LREAL;
 	PosDiff_RightBottomLin_actual:LREAL;
+	PosDiff_PhaseUpperLin_actual:LREAL;
+	PosDiff_PhaseLowerLin_actual:LREAL;
 (********************Gap Mode*************************)
 (**)
 	GapPositionActual:LREAL;
@@ -243,6 +268,10 @@ VAR_GLOBAL
 	FB_Stop:FB_Stop;
 	FB_DecoupleAxis:FB_DecoupleAxis;
 	FB_CoupleAxis: FB_CoupleAxis;
+	FB_Move_PhaseUpper:FB_Move;
+	FB_Stop_PhaseUpper:FB_Stop;
+	FB_Move_PhaseLower:FB_Move;
+	FB_Stop_PhaseLower:FB_Stop;
 (********************²¹³¥GapÄ£Ê½£¬µ¥Öá²¹³¥Êý¾Ý************************)
 	(*ÊÇ·ñ²¹³¥*)
 	USE_SingleAxis_Compensation:BOOL:=TRUE;

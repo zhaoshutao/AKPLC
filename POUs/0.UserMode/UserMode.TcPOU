@@ -15,15 +15,17 @@ VAR
 	UserTaperPositionNew:LREAL:=0;//target
 	UserTaperVelocityNew:LREAL:=1;//target
 	UserTaperPositionDisplay:LREAL;//current
-	//UserTaperPositionDisplay_FromRightTop:LREAL;
-	//UserTaperPositionDisplay_FromRightBottom:LREAL;
 	UserTaperVelocityDisplay:LREAL;//target
-	//Pos_LeftTopLin_NoTaper:LREAL;
-	//Pos_RightTopLin_NoTaper:LREAL;
-	//Pos_LeftBottomLin_NoTaper:LREAL;
-	//Pos_RightBottomLin_NoTaper:LREAL;
 	UserGapPositionDisplay_FromLeftTop:LREAL;
 	UserGapPositionDisplay_FromLeftBottom:LREAL;
+(*PhaseUpper Move*)
+	UserPhaseUpperPositionNew:LREAL:=1;//target
+	UserPhaseUpperVelocityNew:LREAL:=1;//target
+(*PhaseUpper Move*)
+	UserPhaseLowerPositionNew:LREAL:=1;//target
+	UserPhaseLowerVelocityNew:LREAL:=1;//target
+	UserPhaseLowerPositionDisplay:LREAL;//current
+	UserPhaseLowerVelocityDisplay:LREAL;//current
 	//
 	UserRightGapPositionNew:LREAL;
 	UserRightGapVelocityNew:LREAL;
@@ -31,13 +33,22 @@ VAR
 	UserRightGapVelocityDisplay:LREAL;
 	UserRightGapPositionDisplay_FromRightTop:LREAL;
 	UserRightGapPositionDisplay_FromRightBottom:LREAL;
-	(**)
+	(*Gap move&Stop*)
 	btn_UserGapMove:BOOL;
 	btn_UserGapStop:BOOL;
+	(*PhaseUpper Move&Stop*)
+	btn_UserPhaseUpperMove:BOOL;
+	btn_UserPhaseUpperStop:BOOL;
+	(*PhaseLower Move&Stop*)
+	btn_UserPhaseLowerMove:BOOL;
+	btn_UserPhaseLowerStop:BOOL;
 	(*Var*)
 	fb_ton1:TON;
 	fb_ton2:TON;
 	fb_ton3:TON;
+	fb_ton4:TON;
+	fb_ton5:TON;
+	fb_ton6:TON;
 	(*Status*)
 	State:DINT;
 	Busy:BOOL;
@@ -47,8 +58,16 @@ VAR
 	m_state: DINT;
 	n_state: DINT;
 	s_state: DINT;
+	m_state_PhaseUpper: DINT;
+	n_state_PhaseUpper: DINT;
+	s_state_PhaseUpper: DINT;
+	m_state_PhaseLower: DINT;
+	n_state_PhaseLower: DINT;
+	s_state_PhaseLower: DINT;
 	(*¼ì²âµ½ÏÞÎ»£¬»Ö¸´Move×´Ì¬*)
 	FTrig_ReachLS: F_TRIG;
+	FTrig_ReachLS_PhaseUpper: F_TRIG;
+	FTrig_ReachLS_PhaseLower: F_TRIG;
 	FTrig_btn_GapMove: F_TRIG;
 	GapOutRange: BOOL;
 	(*PowerOff*)
@@ -65,6 +84,15 @@ VAR
 	PositiveMoving:BOOL;
 	HysteresisMoving:BOOL;
 	NoneHysteresisMoving:BOOL;
+	(**)
+	TargetPosLessThanCurrentPos_PhaseUpper:BOOL;
+	PositiveMoving_PhaseUpper:BOOL;
+	HysteresisMoving_PhaseUpper:BOOL;
+	NoneHysteresisMoving_PhaseUpper:BOOL;
+	TargetPosLessThanCurrentPos_PhaseLower:BOOL;
+	PositiveMoving_PhaseLower:BOOL;
+	HysteresisMoving_PhaseLower:BOOL;
+	NoneHysteresisMoving_PhaseLower:BOOL;
 	(*Spectroscopy scanning Mode*)
 	RegularMotionMode:BOOL;
 	SSMotionMode:BOOL;
@@ -97,6 +125,22 @@ VAR
 	min_UserGapVelocityNew:LREAL:=0;
 	max_UserGapVelocityNew:LREAL:=3;
 	inRange_UserGapVelocityNew:BOOL;
+	//
+	min_UserPhaseUpperPositionNew:LREAL:=-10;
+	max_UserPhaseUpperPositionNew:LREAL:=10;
+	inRange_UserPhaseUpperPositionNew:BOOL;
+	//
+	min_UserPhaseUpperVelocityNew:LREAL:=0;
+	max_UserPhaseUpperVelocityNew:LREAL:=1;
+	inRange_UserPhaseUpperVelocityNew:BOOL;
+		//
+	min_UserPhaseLowerPositionNew:LREAL:=-10;
+	max_UserPhaseLowerPositionNew:LREAL:=10;
+	inRange_UserPhaseLowerPositionNew:BOOL;
+	//
+	min_UserPhaseLowerVelocityNew:LREAL:=0;
+	max_UserPhaseLowerVelocityNew:LREAL:=1;
+	inRange_UserPhaseLowerVelocityNew:BOOL;
 	//
 	min_UserTaperPositionNew: LREAL:=0;;
 	max_UserTaperPositionNew: LREAL:=4;
@@ -169,20 +213,24 @@ A_MonitoringAllAxis();
 (*补偿数据处理*)
 A_InitCompensationData();
 
-(*常规磁间隙开合*)
-IF RegularMotionMode AND NOT SSMotionMode THEN
-	A_RegularMotion();
-END_IF
+(*CheckInputPosVelo*)
+A_CheckInputPosVelo();
+(*检查光栅读数是否在范围内*)
+A_CheckLinearEncoder();
 
+(*常规磁间隙开合*)
+//IF RegularMotionMode AND NOT SSMotionMode THEN
+A_RegularMotion();
+//END_IF
+(*PhaseUpper运动*)
+A_PhaseUpperMotion();
+(*PhaseLower运动*)
+A_PhaseLowerMotion();
 (*Spectroscopy scanning Mode*)
 IF	SSMotionMode AND NOT RegularMotionMode THEN
 	A_SpectroscopyScanningMotion();
 END_IF
-
-(*CheckInputPosVelo*)
-A_CheckInputPosVelo();
-(*检查光栅读数是否在范围内*)
-A_CheckLinearEncoder();]]></ST>
+]]></ST>
     </Implementation>
     <Action Name="A_CheckCoupleStatus" Id="{ec531655-4226-4156-a0f2-db7d67f06866}">
       <Implementation>
@@ -231,6 +279,34 @@ END_IF
 IF UserTaperVelocityNew>=min_UserTaperVelocityNew AND UserTaperVelocityNew<=max_UserTaperVelocityNew THEN
 	inRange_UserTaperVelocityNew:=TRUE;
 END_IF
+//PhaseUpper Position
+IF UserPhaseUpperPositionNew<min_UserPhaseUpperPositionNew OR UserPhaseUpperPositionNew>max_UserPhaseUpperPositionNew THEN
+	inRange_UserPhaseUpperPositionNew:=FALSE;
+END_IF
+IF UserPhaseUpperPositionNew>=min_UserPhaseUpperPositionNew AND UserPhaseUpperPositionNew<=max_UserPhaseUpperPositionNew THEN
+	inRange_UserPhaseUpperPositionNew:=TRUE;
+END_IF
+//PhaseUpper velocity
+IF UserPhaseUpperVelocityNew<min_UserPhaseUpperVelocityNew OR UserPhaseUpperVelocityNew>max_UserPhaseUpperVelocityNew THEN
+	inRange_UserPhaseUpperVelocityNew:=FALSE;
+END_IF
+IF UserPhaseUpperVelocityNew>=min_UserPhaseUpperVelocityNew AND UserPhaseUpperVelocityNew<=max_UserPhaseUpperVelocityNew THEN
+	inRange_UserPhaseUpperVelocityNew:=TRUE;
+END_IF
+//PhaseLower Position
+IF UserPhaseLowerPositionNew<min_UserPhaseLowerPositionNew OR UserPhaseLowerPositionNew>max_UserPhaseLowerPositionNew THEN
+	inRange_UserPhaseLowerPositionNew:=FALSE;
+END_IF
+IF UserPhaseLowerPositionNew>=min_UserPhaseLowerPositionNew AND UserPhaseLowerPositionNew<=max_UserPhaseLowerPositionNew THEN
+	inRange_UserPhaseLowerPositionNew:=TRUE;
+END_IF
+//PhaseLower velocity
+IF UserPhaseLowerVelocityNew<min_UserPhaseLowerVelocityNew OR UserPhaseLowerVelocityNew>max_UserPhaseLowerVelocityNew THEN
+	inRange_UserPhaseLowerVelocityNew:=FALSE;
+END_IF
+IF UserPhaseLowerVelocityNew>=min_UserPhaseLowerVelocityNew AND UserPhaseLowerVelocityNew<=max_UserPhaseLowerVelocityNew THEN
+	inRange_UserPhaseLowerVelocityNew:=TRUE;
+END_IF
 //SS Mode
 IF SS_StepSize<min_SS_StepSize OR SS_StepSize>max_SS_StepSize THEN
 	inRange_SS_StepSize:=FALSE;
@@ -263,7 +339,7 @@ END_IF
     <Action Name="A_CheckLinearEncoder" Id="{04ef6a41-e2ba-498d-aa00-f823237bb5de}">
       <Implementation>
         <ST><![CDATA[//如果没有使用光栅、或者光栅参数没设置好，则不检查光栅位置
-IF NOT USELinearEncoeder OR NOT PositionBiasDone THEN
+IF NOT USELinearEncoder OR NOT PositionBiasDone THEN
 	RETURN;
 END_IF
 IF Pos_LeftTopLin <=0 THEN
@@ -451,7 +527,7 @@ RightTopLinVelocityDisplay:=Velo_RightTopLin;
 LeftBottomLinVelocityDisplay:=Velo_LeftBottomLin;
 RightBottomLinVelocityDisplay:=Velo_RightBottomLin;
 UserGapVelocityDisplay:=(LeftTopLinVelocityDisplay+RightTopLinVelocityDisplay+
-	LeftBottomLinVelocityDisplay+RightBottomLinVelocityDisplay)/2;
+LeftBottomLinVelocityDisplay+RightBottomLinVelocityDisplay)/2;
 
 ]]></ST>
       </Implementation>
@@ -553,6 +629,346 @@ CASE moni_State OF
 		Error:=TRUE;
 		LED_Error:=TRUE;
 END_CASE
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PhaseLowerMotion" Id="{f5505abe-8b40-4ad3-855a-7ffc19481ca9}">
+      <Implementation>
+        <ST><![CDATA[(*输入保护*)
+IF btn_UserPhaseLowerMove THEN
+	IF NOT inRange_UserPhaseLowerPositionNew THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=811;
+		ErrorDescription:='target PhaseLower position out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseLowerStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';	
+	END_IF
+	IF NOT inRange_UserPhaseLowerVelocityNew THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=812;
+		ErrorDescription:='target PhaseLower velocity out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseLowerStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';
+	END_IF
+END_IF
+
+(*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
+//只在m=和n=0的时候判断，否则会出现一些BUG，比如往大间隙开时，运动到位后m不能回到0.
+IF m_state_PhaseLower=0 AND n_state_PhaseLower=0 THEN
+	IF UserPhaseLowerPositionNew-Pos_PhaseLowerLin<-LEDriftErrorThreshold_PhaseLower THEN
+			TargetPosLessThanCurrentPos_PhaseLower:=TRUE;
+	ELSE
+			TargetPosLessThanCurrentPos_PhaseLower:=FALSE;
+	END_IF
+END_IF
+
+(*Move*)
+IF InitPowerDone THEN
+		(*目标位置都大于当前位置，直接走到目标位置即可，不需要先走到考虑回城误差的临时位置*)
+		IF NOT TargetPosLessThanCurrentPos_PhaseLower AND NOT HysteresisMoving_PhaseLower THEN
+			CASE m_state_PhaseLower OF
+				0:
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;							
+					FB_Move_PhaseLower.PhaseLowerPosition:=UserPhaseLowerPositionNew;
+					FB_Move_PhaseLower.PhaseLowerVelocity:=UserPhaseLowerVelocityNew;		
+					IF btn_UserPhaseLowerMove THEN
+						FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+						m_state_PhaseLower:=1;
+						FB_Move_PhaseLower();
+					END_IF
+				1:
+					btn_UserPhaseLowerMove:=FALSE;
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*ÔË¶¯Î´Íê³É£¬Ñ­»·*)
+						Led_Run:=TRUE;
+						m_state_PhaseLower:=1;
+					ELSE									(*ÔË¶¯Íê³É£¬ÏÂÒ»²½*)
+						m_state_PhaseLower:=88;
+					END_IF
+				88:
+					btn_UserPhaseLowerMove:=FALSE;					(*×´Ì¬»Ö¸´*)
+					Led_Run:=FALSE;
+					m_state_PhaseLower:=0;
+			END_CASE
+		(*四轴有目标位置小于当前位置，先走到临时位置，再走到目标位置*)
+		ELSE
+			CASE n_state_PhaseLower OF
+				0:
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode;5:userMode_2
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;			
+					
+					//
+					IF TargetPosLessThanCurrentPos_PhaseLower THEN			
+						FB_Move_PhaseLower.PhaseLowerPosition:=UserPhaseLowerPositionNew-HysteresisError_PhaseLower;
+					ELSE
+						FB_Move_PhaseLower.PhaseLowerPosition:=UserPhaseLowerPositionNew;	
+					END_IF				
+					//
+					FB_Move_PhaseLower.PhaseLowerVelocity:=UserPhaseLowerVelocityNew;
+						
+					IF btn_UserPhaseLowerMove THEN							
+						n_state_PhaseLower:=1;
+						FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+						FB_Move_PhaseLower();
+						HysteresisMoving_PhaseLower:=TRUE;
+					END_IF
+				1:
+					btn_UserPhaseLowerMove:=FALSE;
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*还未运动到位置,运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseLower:=1;
+					ELSE									
+						n_state_PhaseLower:=2;							(*转到下一步，运动到最终位置*)
+						FB_Move_PhaseLower.PhaseLowerMove:=FALSE;
+						//Led_Run:=FALSE;
+					END_IF
+				2:
+					FB_Move_PhaseLower.PhaseLowerReset:=FALSE;
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;			
+					FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+					//直接走到目标位置，已经走到位置的，可以继续下命令，只不过它不在走了而已
+					FB_Move_PhaseLower.PhaseLowerPosition:=UserPhaseLowerPositionNew;	
+					FB_Move_PhaseLower.PhaseLowerVelocity:=UserPhaseLowerVelocityNew;
+					FB_Move_PhaseLower();							
+					n_state_PhaseLower:=3;
+				3:
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*还未运动到位置,运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseLower:=3;
+					ELSE									
+						n_state_PhaseLower:=88;							(*运动到了最终位置*)
+					END_IF
+				88:
+					btn_UserPhaseLowerMove:=FALSE;					
+					Led_Run:=FALSE;
+					n_state_PhaseLower:=0;
+					HysteresisMoving_PhaseLower:=FALSE;
+			END_CASE
+		END_IF
+	//END_IF
+END_IF
+
+IF btn_UserPhaseLowerStop THEN
+	FB_Move_PhaseLower.PhaseLowerReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
+	FB_Move_PhaseLower();											(*Æô¶¯FB_Move*)
+	btn_UserPhaseLowerMove:=FALSE;								(*btn_GapMove:=FALSE*)
+	m_state_PhaseLower:=0;	
+	n_state_PhaseLower:=0;										(*m_state:=0;*)
+	CASE s_state_PhaseLower OF
+			0:
+				FB_Stop_PhaseLower.Mode:=4;							(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£»3£ºtaperÄ£Ê½£»4£ºDebugÄ£Ê½£»5£ºBCGapÄ£Ê½*)
+				FB_Stop_PhaseLower.CoupleState:=st_Couple;			(*ñîºÏ×´Ì¬ÊäÈë*)
+				FB_Stop_PhaseLower.PowerState:=st_Power;				(*µçÔ´×´Ì¬ÊäÈë*)
+				FB_Stop_PhaseLower.PhaseLowerStop:=TRUE;				(*Execute TRUE*)
+				FB_Stop_PhaseLower();								(*Æô¶¯FB*)
+				s_state_PhaseLower:=1;
+			1:
+				FB_Stop_PhaseLower();
+				IF NOT FB_Stop_PhaseLower.PhaseLowerDone THEN			(*Í£Ö¹Î´Íê³É£¬Ñ­»·*)
+					s_state_PhaseLower:=1;
+				ELSE									(*Í£Ö¹Íê³É£¬ÏÂÒ»²½*)
+					s_state_PhaseLower:=88;
+				END_IF
+			88:
+				btn_UserPhaseLowerStop:=FALSE;						(*»Ö¸´×´Ì¬*)
+				FB_Move_PhaseLower.PhaseLowerReset:=FALSE;				(*ÔËÐÐFB*)
+				s_state_PhaseLower:=0;
+		END_CASE
+END_IF
+
+(*触发限位开关后，相当于点击了Stop按钮*)
+FTrig_ReachLS_PhaseLower(CLK:=LS_PhaseLower_Entrance AND LS_PhaseLower_Exit);
+IF FTrig_ReachLS_PhaseLower.Q THEN
+	btn_UserPhaseLowerStop:=TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PhaseUpperMotion" Id="{b87fb803-245f-4181-b0eb-701ba9dcf58a}">
+      <Implementation>
+        <ST><![CDATA[(*输入保护*)
+IF btn_UserPhaseUpperMove THEN
+	IF NOT inRange_UserPhaseUpperPositionNew THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=809;
+		ErrorDescription:='target PhaseUpper position out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseUpperStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';	
+	END_IF
+	IF NOT inRange_UserPhaseUpperVelocityNew THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=810;
+		ErrorDescription:='target PhaseUpper velocity out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseUpperStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';
+	END_IF
+END_IF
+
+(*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
+//只在m=和n=0的时候判断，否则会出现一些BUG，比如往大间隙开时，运动到位后m不能回到0.
+IF m_state_PhaseUpper=0 AND n_state_PhaseUpper=0 THEN
+	IF UserPhaseUpperPositionNew-Pos_PhaseUpperLin<-LEDriftErrorThreshold_PhaseUpper THEN
+			TargetPosLessThanCurrentPos_PhaseUpper:=TRUE;
+	ELSE
+			TargetPosLessThanCurrentPos_PhaseUpper:=FALSE;
+	END_IF
+END_IF
+
+(*Move*)
+IF InitPowerDone THEN
+		(*目标位置都大于当前位置，直接走到目标位置即可，不需要先走到考虑回城误差的临时位置*)
+		IF NOT TargetPosLessThanCurrentPos_PhaseUpper AND NOT HysteresisMoving_PhaseUpper THEN
+			CASE m_state_PhaseUpper OF
+				0:
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;							
+					FB_Move_PhaseUpper.PhaseUpperPosition:=UserPhaseUpperPositionNew;
+					FB_Move_PhaseUpper.PhaseUpperVelocity:=UserPhaseUpperVelocityNew;		
+					IF btn_UserPhaseUpperMove THEN
+						FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+						m_state_PhaseUpper:=1;
+						FB_Move_PhaseUpper();
+					END_IF
+				1:
+					btn_UserPhaseUpperMove:=FALSE;
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*ÔË¶¯Î´Íê³É£¬Ñ­»·*)
+						Led_Run:=TRUE;
+						m_state_PhaseUpper:=1;
+					ELSE									(*ÔË¶¯Íê³É£¬ÏÂÒ»²½*)
+						m_state_PhaseUpper:=88;
+					END_IF
+				88:
+					btn_UserPhaseUpperMove:=FALSE;					(*×´Ì¬»Ö¸´*)
+					Led_Run:=FALSE;
+					m_state_PhaseUpper:=0;
+			END_CASE
+		(*四轴有目标位置小于当前位置，先走到临时位置，再走到目标位置*)
+		ELSE
+			CASE n_state_PhaseUpper OF
+				0:
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode;5:userMode_2
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;			
+					
+					//
+					IF TargetPosLessThanCurrentPos_PhaseUpper THEN			
+						FB_Move_PhaseUpper.PhaseUpperPosition:=UserPhaseUpperPositionNew-HysteresisError_PhaseUpper;
+					ELSE
+						FB_Move_PhaseUpper.PhaseUpperPosition:=UserPhaseUpperPositionNew;	
+					END_IF				
+					//
+					FB_Move_PhaseUpper.PhaseUpperVelocity:=UserPhaseUpperVelocityNew;
+						
+					IF btn_UserPhaseUpperMove THEN							
+						n_state_PhaseUpper:=1;
+						FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+						FB_Move_PhaseUpper();
+						HysteresisMoving_PhaseUpper:=TRUE;
+					END_IF
+				1:
+					btn_UserPhaseUpperMove:=FALSE;
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*还未运动到位置,运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseUpper:=1;
+					ELSE									
+						n_state_PhaseUpper:=2;							(*转到下一步，运动到最终位置*)
+						FB_Move_PhaseUpper.PhaseUpperMove:=FALSE;
+						//Led_Run:=FALSE;
+					END_IF
+				2:
+					FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;			
+					FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+					//直接走到目标位置，已经走到位置的，可以继续下命令，只不过它不在走了而已
+					FB_Move_PhaseUpper.PhaseUpperPosition:=UserPhaseUpperPositionNew;	
+					FB_Move_PhaseUpper.PhaseUpperVelocity:=UserPhaseUpperVelocityNew;
+					FB_Move_PhaseUpper();							
+					n_state_PhaseUpper:=3;
+				3:
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*还未运动到位置,运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseUpper:=3;
+					ELSE									
+						n_state_PhaseUpper:=88;							(*运动到了最终位置*)
+					END_IF
+				88:
+					btn_UserPhaseUpperMove:=FALSE;					
+					Led_Run:=FALSE;
+					n_state_PhaseUpper:=0;
+					HysteresisMoving_PhaseUpper:=FALSE;
+			END_CASE
+		END_IF
+	//END_IF
+END_IF
+
+IF btn_UserPhaseUpperStop THEN
+	FB_Move_PhaseUpper.PhaseUpperReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
+	FB_Move_PhaseUpper();											(*Æô¶¯FB_Move*)
+	btn_UserPhaseUpperMove:=FALSE;								(*btn_GapMove:=FALSE*)
+	m_state_PhaseUpper:=0;	
+	n_state_PhaseUpper:=0;										(*m_state:=0;*)
+	CASE s_state_PhaseUpper OF
+			0:
+				FB_Stop_PhaseUpper.Mode:=4;							(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£»3£ºtaperÄ£Ê½£»4£ºDebugÄ£Ê½£»5£ºBCGapÄ£Ê½*)
+				FB_Stop_PhaseUpper.CoupleState:=st_Couple;			(*ñîºÏ×´Ì¬ÊäÈë*)
+				FB_Stop_PhaseUpper.PowerState:=st_Power;				(*µçÔ´×´Ì¬ÊäÈë*)
+				FB_Stop_PhaseUpper.PhaseUpperStop:=TRUE;				(*Execute TRUE*)
+				FB_Stop_PhaseUpper();								(*Æô¶¯FB*)
+				s_state_PhaseUpper:=1;
+			1:
+				FB_Stop_PhaseUpper();
+				IF NOT FB_Stop_PhaseUpper.PhaseUpperDone THEN			(*Í£Ö¹Î´Íê³É£¬Ñ­»·*)
+					s_state_PhaseUpper:=1;
+				ELSE									(*Í£Ö¹Íê³É£¬ÏÂÒ»²½*)
+					s_state_PhaseUpper:=88;
+				END_IF
+			88:
+				btn_UserPhaseUpperStop:=FALSE;						(*»Ö¸´×´Ì¬*)
+				FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;				(*ÔËÐÐFB*)
+				s_state_PhaseUpper:=0;
+		END_CASE
+END_IF
+
+(*触发限位开关后，相当于点击了Stop按钮*)
+FTrig_ReachLS_PhaseUpper(CLK:=LS_PhaseUpper_Entrance AND LS_PhaseUpper_Exit);
+IF FTrig_ReachLS_PhaseUpper.Q THEN
+	btn_UserPhaseUpperStop:=TRUE;
 END_IF]]></ST>
       </Implementation>
     </Action>
@@ -1130,20 +1546,21 @@ END_IF
       <LineId Id="543" Count="0" />
       <LineId Id="82" Count="0" />
       <LineId Id="81" Count="0" />
+      <LineId Id="1150" Count="3" />
       <LineId Id="544" Count="0" />
+      <LineId Id="1154" Count="0" />
       <LineId Id="406" Count="0" />
       <LineId Id="548" Count="0" />
       <LineId Id="530" Count="0" />
       <LineId Id="549" Count="0" />
+      <LineId Id="1148" Count="0" />
       <LineId Id="545" Count="0" />
+      <LineId Id="1190" Count="0" />
+      <LineId Id="1205" Count="0" />
       <LineId Id="445" Count="0" />
       <LineId Id="550" Count="0" />
       <LineId Id="528" Count="0" />
       <LineId Id="551" Count="0" />
-      <LineId Id="655" Count="0" />
-      <LineId Id="570" Count="0" />
-      <LineId Id="656" Count="0" />
-      <LineId Id="1012" Count="0" />
       <LineId Id="1011" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_CheckCoupleStatus">
@@ -1163,6 +1580,13 @@ END_IF
       <LineId Id="24" Count="0" />
       <LineId Id="26" Count="4" />
       <LineId Id="25" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="63" Count="4" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="68" Count="5" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="75" Count="12" />
+      <LineId Id="74" Count="0" />
       <LineId Id="31" Count="0" />
       <LineId Id="35" Count="4" />
       <LineId Id="34" Count="0" />
@@ -1277,6 +1701,94 @@ END_IF
       <LineId Id="106" Count="2" />
       <LineId Id="111" Count="0" />
       <LineId Id="62" Count="7" />
+    </LineIds>
+    <LineIds Name="UserMode.A_PhaseLowerMotion">
+      <LineId Id="225" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="237" Count="1" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="252" Count="2" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="255" Count="3" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="260" Count="3" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="294" Count="1" />
+      <LineId Id="299" Count="1" />
+      <LineId Id="302" Count="2" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="37" Count="8" />
+      <LineId Id="52" Count="5" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="58" Count="25" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="107" Count="7" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="115" Count="8" />
+      <LineId Id="131" Count="7" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="147" Count="9" />
+      <LineId Id="163" Count="35" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="200" Count="3" />
+      <LineId Id="199" Count="0" />
+    </LineIds>
+    <LineIds Name="UserMode.A_PhaseUpperMotion">
+      <LineId Id="225" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="236" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="237" Count="1" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="252" Count="2" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="255" Count="3" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="260" Count="3" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="342" Count="1" />
+      <LineId Id="294" Count="1" />
+      <LineId Id="299" Count="1" />
+      <LineId Id="302" Count="2" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="37" Count="8" />
+      <LineId Id="52" Count="5" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="58" Count="25" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="107" Count="7" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="115" Count="8" />
+      <LineId Id="131" Count="7" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="147" Count="9" />
+      <LineId Id="163" Count="35" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="200" Count="3" />
+      <LineId Id="199" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_PowerOff">
       <LineId Id="0" Count="27" />
