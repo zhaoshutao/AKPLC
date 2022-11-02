@@ -86,7 +86,10 @@ VAR
 	Torque_RB AT%I*:INT;
 (**)
 	btn_setAxisPosition: BOOL;
-	GapSetValue: LREAL;
+	ValueSet_LeftTop:LREAL;
+	ValueSet_RightTop:LREAL;
+	ValueSet_LeftBottom:LREAL;
+	ValueSet_RightBottom:LREAL;
 	btn_setPhaseUpperAxisPosition: BOOL;
 	PhaseUpperSetValue: LREAL;
 	btn_setPhaseLowerAxisPosition: BOOL;
@@ -237,7 +240,10 @@ A_SafePlcStartInit();
 END_IF
 (************SetAxisPosition-GAP*********************)
 IF  NOT USELinearEncoder AND setAxisPositionEnable AND btn_setAxisPosition THEN
-		FB_Set_AxisPosition.GapValueSet:=GapSetValue;
+		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_LeftTop;
+		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_RightTop;
+		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_LeftBottom;
+		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_RightBottom;
 		A_SetAxisPosition();
 END_IF
 (************SetAxisPosition-GAP*********************)
@@ -282,20 +288,32 @@ BackgroundEL();
 //A_GetTemperatureSensorsData();
 
 (*设置position bias*)
-IF loadParametersDone THEN 
+IF loadParametersDone AND (DriveStatus=1 OR simulation) THEN 
 	A_SetLinearEncoderPositionBias();
 END_IF
 (*检查硬急停状态，包括安全限位、柜门急停、手持急停*)
 A_CheckHardwareEmergencyStopStatus();
-(*获取驱动器状态信息*)
-A_GetDriverStatus();]]></ST>
-    </Implementation>
-    <Action Name="A_CheckHardwareEmergencyStopStatus" Id="{c59a955b-0a8f-43a7-a0e7-3ab11b3d5ab6}">
-      <Implementation>
-        <ST><![CDATA[IF Simulation THEN
-	RETURN;
+IF NOT simulation THEN
+	A_GetDriverStatus();
 END_IF
-IF 	NOT KS_LeftTop_Far_Contact1 OR
+(*IDControlReady*)
+IF ((DriveStatus<>0 AND SafePLCRunOK) OR simulation) AND NOT Error THEN
+	IDControlReady:=TRUE;
+ELSE
+	IDControlReady:=FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="Axis" Id="{3eb3b5b7-a5d5-4d06-be7c-05e13125e510}" />
+    <Folder Name="Check" Id="{010fabb8-e18f-4120-a985-758e6fd55448}" />
+    <Folder Name="Driver" Id="{4350ce85-0586-4023-bc46-2cdffd7a9c8a}" />
+    <Folder Name="LinearEncoder" Id="{059dd61e-7778-40dc-bb8d-282e70434fee}" />
+    <Folder Name="Recipe" Id="{b4cf8559-847d-478e-99d6-23420c56f08c}" />
+    <Folder Name="Safe" Id="{05d14914-bd26-4aa9-9f6b-59a79d201008}" />
+    <Folder Name="TC" Id="{241a329f-2cca-4424-8363-173b04696ef4}" />
+    <Folder Name="Temperature" Id="{208f15b3-de64-4bc9-957f-ed1bc6c64ee5}" />
+    <Action Name="A_CheckHardwareEmergencyStopStatus" Id="{c59a955b-0a8f-43a7-a0e7-3ab11b3d5ab6}" FolderPath="Check\">
+      <Implementation>
+        <ST><![CDATA[IF 	NOT KS_LeftTop_Far_Contact1 OR
 	NOT KS_LeftTop_Far_Contact2 OR
 	NOT KS_RightTop_Far_Contact1 OR
 	NOT KS_RightTop_Far_Contact2 OR
@@ -335,56 +353,105 @@ END_IF
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_CheckKillSwitch" Id="{158eed83-fba1-4051-b569-3585448d2a5a}">
+    <Action Name="A_CheckKillSwitch" Id="{158eed83-fba1-4051-b569-3585448d2a5a}" FolderPath="Check\">
       <Implementation>
-        <ST><![CDATA[//EL1904-1
-KS_LeftTop_Far_Contact1:=EL1904[1];//c1
-KS_LeftTop_Far_Contact2:=EL1904[2];//c2
-KS_LeftTop_Near_Contact1:=EL1904[3];//c3
-KS_LeftTop_Near_Contact2:=EL1904[4];//c4
-//EL1904-2
-KS_RightTop_Far_Contact1:=EL1904[5];
-KS_RightTop_Far_Contact2:=EL1904[6];
-KS_RightTop_Near_Contact1:=EL1904[7];
-KS_RightTop_Near_Contact2:=EL1904[8];
-//EL1904-3
-KS_LeftBottom_Far_Contact1:=EL1904[9];
-KS_LeftBottom_Far_Contact2:=EL1904[10];
-KS_LeftBottom_Near_Contact1:=EL1904[11];
-KS_LeftBottom_Near_Contact2:=EL1904[12];
-//EL1904-4
-KS_RightBottom_Far_Contact1:=EL1904[13];
-KS_RightBottom_Far_Contact2:=EL1904[14];
-KS_RightBottom_Near_Contact1:=EL1904[15];
-KS_RightBottom_Near_Contact2:=EL1904[16];	
-//EL1904-5
-KS_PhaseUpper_Exit_Contact1:=EL1904[17];
-KS_PhaseUpper_Exit_Contact2:=EL1904[18];
-KS_PhaseUpper_Entrance_Contact1:=EL1904[19];
-KS_PhaseUpper_Entrance_Contact2:=EL1904[20];
-//EL1904-6
-KS_PhaseLower_Exit_Contact1:=EL1904[21];
-KS_PhaseLower_Exit_Contact2:=EL1904[22];
-KS_PhaseLower_Entrance_Contact1:=EL1904[23];
-KS_PhaseLower_Entrance_Contact2:=EL1904[24];
-//EL1904-7
-(*E-STOP*)
-(*柜门急停*)
-KS_CabinetEmergency_contact1:=EL1904[25];
-KS_CabinetEmergency_contact2:=EL1904[26];
-(*手持急停-1*)
-KS_handEmergency1_Contact1:=EL1904[27];
-KS_handEmergency1_Contact2:=EL1904[28];
-//EL1904-8
-(*手持急停-2*)
-KS_handEmergency2_Contact1:=EL1904[29];
-KS_handEmergency2_Contact2:=EL1904[30];
+        <ST><![CDATA[IF simulation THEN
+	//EL1904-1
+	KS_LeftTop_Far_Contact1:=TRUE;
+	KS_LeftTop_Far_Contact2:=TRUE;
+	KS_LeftTop_Near_Contact1:=TRUE;
+	KS_LeftTop_Near_Contact2:=TRUE;
+	//EL1904-2
+	KS_RightTop_Far_Contact1:=TRUE;
+	KS_RightTop_Far_Contact2:=TRUE;
+	KS_RightTop_Near_Contact1:=TRUE;
+	KS_RightTop_Near_Contact2:=TRUE;
+	//EL1904-3
+	KS_LeftBottom_Far_Contact1:=TRUE;
+	KS_LeftBottom_Far_Contact2:=TRUE;
+	KS_LeftBottom_Near_Contact1:=TRUE;
+	KS_LeftBottom_Near_Contact2:=TRUE;
+	//EL1904-4
+	KS_RightBottom_Far_Contact1:=TRUE;
+	KS_RightBottom_Far_Contact2:=TRUE;
+	KS_RightBottom_Near_Contact1:=TRUE;
+	KS_RightBottom_Near_Contact2:=TRUE;
+	//EL1904-5
+	KS_PhaseUpper_Exit_Contact1:=TRUE;
+	KS_PhaseUpper_Exit_Contact2:=TRUE;
+	KS_PhaseUpper_Entrance_Contact1:=TRUE;
+	KS_PhaseUpper_Entrance_Contact2:=TRUE;
+	//EL1904-6
+	KS_PhaseLower_Exit_Contact1:=TRUE;
+	KS_PhaseLower_Exit_Contact2:=TRUE;
+	KS_PhaseLower_Entrance_Contact1:=TRUE;
+	KS_PhaseLower_Entrance_Contact2:=TRUE;
+	//EL1904-7
+	(*E-STOP*)
+	(*柜门急停*)
+	KS_CabinetEmergency_contact1:=TRUE;
+	KS_CabinetEmergency_contact2:=TRUE;
+	(*手持急停-1*)
+	KS_handEmergency1_Contact1:=TRUE;
+	KS_handEmergency1_Contact2:=TRUE;
+	//EL1904-8
+	(*手持急停-2*)
+	KS_handEmergency2_Contact1:=TRUE;
+	KS_handEmergency2_Contact2:=TRUE;
+	
+	KS_softEmergency2_Contact:=TRUE;
+	AX5805_ErrorAsk:=TRUE;
+ELSE
+	//EL1904-1
+	KS_LeftTop_Far_Contact1:=EL1904[1];//c1
+	KS_LeftTop_Far_Contact2:=EL1904[2];//c2
+	KS_LeftTop_Near_Contact1:=EL1904[3];//c3
+	KS_LeftTop_Near_Contact2:=EL1904[4];//c4
+	//EL1904-2
+	KS_RightTop_Far_Contact1:=EL1904[5];
+	KS_RightTop_Far_Contact2:=EL1904[6];
+	KS_RightTop_Near_Contact1:=EL1904[7];
+	KS_RightTop_Near_Contact2:=EL1904[8];
+	//EL1904-3
+	KS_LeftBottom_Far_Contact1:=EL1904[9];
+	KS_LeftBottom_Far_Contact2:=EL1904[10];
+	KS_LeftBottom_Near_Contact1:=EL1904[11];
+	KS_LeftBottom_Near_Contact2:=EL1904[12];
+	//EL1904-4
+	KS_RightBottom_Far_Contact1:=EL1904[13];
+	KS_RightBottom_Far_Contact2:=EL1904[14];
+	KS_RightBottom_Near_Contact1:=EL1904[15];
+	KS_RightBottom_Near_Contact2:=EL1904[16];	
+	//EL1904-5
+	KS_PhaseUpper_Exit_Contact1:=EL1904[17];
+	KS_PhaseUpper_Exit_Contact2:=EL1904[18];
+	KS_PhaseUpper_Entrance_Contact1:=EL1904[19];
+	KS_PhaseUpper_Entrance_Contact2:=EL1904[20];
+	//EL1904-6
+	KS_PhaseLower_Exit_Contact1:=EL1904[21];
+	KS_PhaseLower_Exit_Contact2:=EL1904[22];
+	KS_PhaseLower_Entrance_Contact1:=EL1904[23];
+	KS_PhaseLower_Entrance_Contact2:=EL1904[24];
+	//EL1904-7
+	(*E-STOP*)
+	(*柜门急停*)
+	KS_CabinetEmergency_contact1:=EL1904[25];
+	KS_CabinetEmergency_contact2:=EL1904[26];
+	(*手持急停-1*)
+	KS_handEmergency1_Contact1:=EL1904[27];
+	KS_handEmergency1_Contact2:=EL1904[28];
+	//EL1904-8
+	(*手持急停-2*)
+	KS_handEmergency2_Contact1:=EL1904[29];
+	KS_handEmergency2_Contact2:=EL1904[30];
+	
+	KS_softEmergency2_Contact:=EL1904[31];
+	AX5805_ErrorAsk:=EL1904[32];
 
-KS_softEmergency2_Contact:=EL1904[31];
-AX5805_ErrorAsk:=EL1904[32];]]></ST>
+END_IF]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_CheckLimitSwitch" Id="{1026ae85-58e3-4004-8dd3-becfab0085f9}">
+    <Action Name="A_CheckLimitSwitch" Id="{1026ae85-58e3-4004-8dd3-becfab0085f9}" FolderPath="Check\">
       <Implementation>
         <ST><![CDATA[(*******1.´ÓIO»ñÈ¡ÏÞÎ»×´Ì¬******)
 (**)
@@ -509,7 +576,7 @@ END_IF
 *)]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_GetDriverStatus" Id="{e05cf975-7b3e-4430-bb2e-a308f4391f1b}">
+    <Action Name="A_GetDriverStatus" Id="{e05cf975-7b3e-4430-bb2e-a308f4391f1b}" FolderPath="Driver\">
       <Implementation>
         <ST><![CDATA[IF bReloadDriveDiagMessageAndNumber THEN
 	m_GetDriveStatusState:=0;
@@ -518,7 +585,7 @@ END_IF
 A_GetDriverStatusMC();
 CASE m_GetDriveStatusState OF
 	0:
-		IF 	fb_SoEReadDiagMessage_LeftTop.bError
+		(*IF 	fb_SoEReadDiagMessage_LeftTop.bError
 			OR fb_SoEReadDiagMessage_RightTop.bError
 			OR fb_SoEReadDiagMessage_LeftBottom.bError
 			OR fb_SoEReadDiagMessage_RightBottom.bError
@@ -534,6 +601,8 @@ CASE m_GetDriveStatusState OF
 		ELSE
 			m_GetDriveStatusState:=1;
 		END_IF
+		*)
+		m_GetDriveStatusState:=1;
 	1:
 		bDriveDiagMessageAndNumber:=TRUE;
 		m_GetDriveStatusState:=2;
@@ -581,6 +650,20 @@ CASE m_GetDriveStatusState OF
 			OR FB_SoEReadDiagNumber_PhaseLower.bError THEN
 			m_GetDriveStatusState:=-100;
 		END_IF
+				(*Drive Status*)
+		//D012, Axis state machine: Control and power section ready
+		IF DriveDiagNumber_LeftTop=16#D012 AND DriveDiagNumber_RightTop=16#D012
+			AND DriveDiagNumber_LeftBottom=16#D012 AND DriveDiagNumber_RightBottom=16#D012 
+			AND DriveDiagNumber_PhaseUpper=16#D012 AND DriveDiagNumber_PhaseLower=16#D012 THEN
+			DriveStatus:=1;
+		//D013, Axis state machine: Axis in operation
+		ELSIF DriveDiagNumber_LeftTop=16#D013 AND DriveDiagNumber_RightTop=16#D013
+			AND DriveDiagNumber_LeftBottom=16#D013 AND DriveDiagNumber_RightBottom=16#D013 
+			AND DriveDiagNumber_PhaseUpper=16#D013 AND DriveDiagNumber_PhaseLower=16#D013 THEN
+			DriveStatus:=2;
+		ELSE
+			DriveStatus:=0;
+		END_IF
 	88:
 		bDriveDiagMessageAndNumber:=FALSE;
 		A_GetDriverStatusMC();
@@ -591,10 +674,14 @@ CASE m_GetDriveStatusState OF
 		A_GetDriverStatusMC();
 		GetDriveStatusStateDone:=FALSE;
 		GetDriveStatusStateError:=TRUE;
+		ErrorID:=1301;
+		Error:=TRUE;
+		ErrorDescription:='GetDriveStatusStateError';
+		LED_Error:=TRUE;
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_GetDriverStatusMC" Id="{2d8972a4-2924-4445-a68a-757b585b0760}">
+    <Action Name="A_GetDriverStatusMC" Id="{2d8972a4-2924-4445-a68a-757b585b0760}" FolderPath="Driver\">
       <Implementation>
         <NWL>
           <XmlArchive>
@@ -3519,7 +3606,7 @@ END_CASE]]></ST>
         </NWL>
       </Implementation>
     </Action>
-    <Action Name="A_GetTemperatureSensorsData" Id="{d73fb87c-9e06-4b36-8cf6-68d5032eab30}">
+    <Action Name="A_GetTemperatureSensorsData" Id="{d73fb87c-9e06-4b36-8cf6-68d5032eab30}" FolderPath="Temperature\">
       <Implementation>
         <ST><![CDATA[//sensor_1
 dut_sensor_datas_1.data_byte[3]:=Sensor_Reading_1[0];
@@ -3606,7 +3693,7 @@ END_IF
 					]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_InitAxisParameters" Id="{a92c2dd6-12b0-4a71-a4bc-d7afbc965cb4}">
+    <Action Name="A_InitAxisParameters" Id="{a92c2dd6-12b0-4a71-a4bc-d7afbc965cb4}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[(*ÖáÎ»ÖÃ¡¢ËÙ¶È¡¢PosDiff*)
 
@@ -3651,7 +3738,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_InitRecipeParameters" Id="{6aa76980-7ae7-46e7-9688-f94b6fa6510d}">
+    <Action Name="A_InitRecipeParameters" Id="{6aa76980-7ae7-46e7-9688-f94b6fa6510d}" FolderPath="Recipe\">
       <Implementation>
         <ST><![CDATA[CASE state_loadParameters OF
 	0:
@@ -3700,7 +3787,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_PosDiffDetectiion" Id="{e857c546-d367-4f19-9434-ed29c144eb6f}">
+    <Action Name="A_PosDiffDetectiion" Id="{e857c546-d367-4f19-9434-ed29c144eb6f}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[IF ABS(PosDiff_LeftTopLin_actual)>PosDiff_LeftTopLin THEN
 	ErrorID:=201;
@@ -3761,7 +3848,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_RestartTC" Id="{737d9420-c364-46ec-805e-ce283c214994}">
+    <Action Name="A_RestartTC" Id="{737d9420-c364-46ec-805e-ce283c214994}" FolderPath="TC\">
       <Implementation>
         <NWL>
           <XmlArchive>
@@ -3960,7 +4047,7 @@ END_IF
         </NWL>
       </Implementation>
     </Action>
-    <Action Name="A_SafePlcStartInit" Id="{4d1a8480-9923-4117-8ca7-ea613a82dfad}">
+    <Action Name="A_SafePlcStartInit" Id="{4d1a8480-9923-4117-8ca7-ea613a82dfad}" FolderPath="Safe\">
       <Implementation>
         <ST><![CDATA[fb_ton0(PT:=t#1s);
 fb_ton1(PT:=t#0.1s);
@@ -4022,7 +4109,7 @@ CASE SafeStatus OF
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_SetAxisPosition" Id="{eb32aedd-8f01-44b1-96a9-73f233ea8548}">
+    <Action Name="A_SetAxisPosition" Id="{eb32aedd-8f01-44b1-96a9-73f233ea8548}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[fb_ton4(PT:=t#0.5s);
 CASE SetAxisPosState OF
@@ -4061,7 +4148,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_SetLinearEncoderPositionBias" Id="{6f3d3f8e-255d-4e09-853f-5fdf91122229}">
+    <Action Name="A_SetLinearEncoderPositionBias" Id="{6f3d3f8e-255d-4e09-853f-5fdf91122229}" FolderPath="LinearEncoder\">
       <Implementation>
         <ST><![CDATA[//设置bias开始
 A_SetLinearEncoderPositionBiasMC();
@@ -4124,7 +4211,7 @@ CASE state_setLEPosBias OF
 END_CASE]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_SetLinearEncoderPositionBiasMC" Id="{d950edd3-252b-4c3c-9e26-a84e2707fa62}">
+    <Action Name="A_SetLinearEncoderPositionBiasMC" Id="{d950edd3-252b-4c3c-9e26-a84e2707fa62}" FolderPath="LinearEncoder\">
       <Implementation>
         <NWL>
           <XmlArchive>
@@ -5387,7 +5474,7 @@ END_CASE]]></ST>
         </NWL>
       </Implementation>
     </Action>
-    <Action Name="A_SetPhaseLowerAxisPosition" Id="{1fc13eaf-295a-4edf-80b0-8f2b92a70814}">
+    <Action Name="A_SetPhaseLowerAxisPosition" Id="{1fc13eaf-295a-4edf-80b0-8f2b92a70814}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[fb_ton8(PT:=T#0.5S);
 CASE SetPhaseLowerAxisPosState OF
@@ -5426,7 +5513,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Action>
-    <Action Name="A_SetPhaseUpperAxisPosition" Id="{e7a3e71e-f61e-4035-868f-571222f71b87}">
+    <Action Name="A_SetPhaseUpperAxisPosition" Id="{e7a3e71e-f61e-4035-868f-571222f71b87}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[fb_ton7(PT:=T#0.5S);
 CASE SetPhaseUpperAxisPosState OF
@@ -5474,7 +5561,9 @@ END_CASE
       <LineId Id="193" Count="0" />
       <LineId Id="84" Count="0" />
       <LineId Id="269" Count="1" />
-      <LineId Id="272" Count="1" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="2188" Count="2" />
+      <LineId Id="273" Count="0" />
       <LineId Id="268" Count="0" />
       <LineId Id="1713" Count="0" />
       <LineId Id="1702" Count="0" />
@@ -5492,15 +5581,16 @@ END_CASE
       <LineId Id="743" Count="0" />
       <LineId Id="1174" Count="1" />
       <LineId Id="1728" Count="0" />
-      <LineId Id="1339" Count="1" />
-      <LineId Id="1344" Count="0" />
+      <LineId Id="2181" Count="2" />
       <LineId Id="866" Count="0" />
       <LineId Id="1505" Count="0" />
       <LineId Id="1504" Count="0" />
-      <LineId Id="1506" Count="1" />
+      <LineId Id="2174" Count="1" />
+      <LineId Id="1507" Count="0" />
+      <LineId Id="2176" Count="4" />
+      <LineId Id="1947" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckHardwareEmergencyStopStatus">
-      <LineId Id="33" Count="2" />
       <LineId Id="2" Count="0" />
       <LineId Id="7" Count="6" />
       <LineId Id="39" Count="2" />
@@ -5517,6 +5607,9 @@ END_CASE
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckKillSwitch">
+      <LineId Id="55" Count="0" />
+      <LineId Id="60" Count="43" />
+      <LineId Id="56" Count="1" />
       <LineId Id="41" Count="0" />
       <LineId Id="3" Count="1" />
       <LineId Id="30" Count="0" />
@@ -5547,6 +5640,8 @@ END_CASE
       <LineId Id="40" Count="0" />
       <LineId Id="2" Count="0" />
       <LineId Id="54" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="58" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckLimitSwitch">
       <LineId Id="0" Count="0" />
@@ -5573,7 +5668,9 @@ END_CASE
       <LineId Id="195" Count="1" />
       <LineId Id="110" Count="3" />
       <LineId Id="197" Count="1" />
-      <LineId Id="114" Count="11" />
+      <LineId Id="114" Count="3" />
+      <LineId Id="227" Count="1" />
+      <LineId Id="118" Count="7" />
       <LineId Id="200" Count="1" />
       <LineId Id="126" Count="4" />
       <LineId Id="202" Count="1" />
@@ -5586,7 +5683,17 @@ END_CASE
       <LineId Id="208" Count="0" />
       <LineId Id="146" Count="3" />
       <LineId Id="211" Count="1" />
-      <LineId Id="150" Count="12" />
+      <LineId Id="150" Count="1" />
+      <LineId Id="214" Count="3" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="218" Count="3" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="222" Count="2" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="152" Count="9" />
+      <LineId Id="230" Count="2" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="162" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_GetTemperatureSensorsData">
       <LineId Id="37" Count="0" />
