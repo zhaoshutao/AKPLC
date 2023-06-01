@@ -265,9 +265,9 @@ END_IF
 (************SetAxisPosition-GAP*********************)
 IF  NOT USELinearEncoder AND setAxisPositionEnable AND btn_setAxisPosition THEN
 		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_LeftTop;
-		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_RightTop;
-		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_LeftBottom;
-		FB_Set_AxisPosition.ValueSet_LeftTop:=ValueSet_RightBottom;
+		FB_Set_AxisPosition.ValueSet_RightTop:=ValueSet_RightTop;
+		FB_Set_AxisPosition.ValueSet_LeftBottom:=ValueSet_LeftBottom;
+		FB_Set_AxisPosition.ValueSet_RightBottom:=ValueSet_RightBottom;
 		A_SetAxisPosition();
 END_IF
 (************SetAxisPosition-GAP*********************)
