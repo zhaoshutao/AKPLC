@@ -222,10 +222,34 @@ VAR
 	DriveDiagNumber_PhaseUpper:UDINT;
 	DriveDiagNumber_PhaseLower:UDINT;
 	bReloadDriveDiagMessageAndNumber: BOOL;
+	
+	(*load IOC*)
+	bExe_load_Prog: BOOL;
+	NT_StartProcess_Load: NT_StartProcess;
+	Exe_load_step: UINT;
+	R_TRIG_ExeLoad: R_TRIG;
+	Exe_Load_Done:BOOL;
+	(*kill IOC*)
+	bExe_Kill_Prog: BOOL;
+	NT_StartProcess_Kill: NT_StartProcess;
+	Exe_kill_step: UINT;
+	R_TRIG_Exekill: R_TRIG;
+	Exe_Kill_Done:BOOL;
+	LoadOpcIocTON:TON;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[A_InitRecipeParameters();
-A_RestartTC();
+      <ST><![CDATA[(*加载Ricipe参数*)
+A_InitRecipeParameters();
+(*Restart TwinCAT*)
+IF Global_Variables.m_restartTC THEN
+(*首先关闭opcIocShell.exe*)	
+	bExe_Kill_Prog:=TRUE;
+	A_KillOpcIocShellExe();
+(*重启TC*)
+	IF Exe_Kill_Done THEN
+		A_RestartTC();
+	END_IF
+END_IF
 (*******InitAxisParameters*******)
 A_InitAxisParameters();
 (*******¼à²âÏÞÎ»¿ª¹Ø×´Ì¬£¬·½Ïò¿ØÖÆ&½ô¼±Çé¿öÏÂEStop*******)
@@ -301,6 +325,12 @@ IF ((DriveStatus<>0 AND SafePLCRunOK) OR simulation) AND NOT Error THEN
 	IDControlReady:=TRUE;
 ELSE
 	IDControlReady:=FALSE;
+END_IF
+
+(*IOC Start*)
+IF SafePLCRunOK OR simulation THEN
+	bExe_load_Prog:=TRUE;
+	A_LoadOpcIocShellExe();
 END_IF]]></ST>
     </Implementation>
     <Folder Name="Axis" Id="{3eb3b5b7-a5d5-4d06-be7c-05e13125e510}" />
@@ -3787,6 +3817,90 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Action>
+    <Action Name="A_KillOpcIocShellExe" Id="{e0252576-ad9e-49ed-bcc5-7f64aacd5ffe}" FolderPath="TC\">
+      <Implementation>
+        <ST><![CDATA[R_TRIG_Exekill(CLK:=bExe_Kill_Prog, Q=> );
+CASE Exe_kill_step OF
+	0:
+		IF R_TRIG_Exekill.Q THEN
+			NT_StartProcess_Kill.START:=FALSE;
+			NT_StartProcess_Kill.PATHSTR:='C:\HZB\OpcIocShell\AKControlIOC\killcmd.bat';
+			//NT_StartProcess_Kill.DIRNAME:='C:\Program Files (x86)\HZB\OpcIocShell\bin\opcIocShell.exe';
+			Exe_kill_step:=10;
+		END_IF;
+	10:
+		NT_StartProcess_Kill.START:=TRUE;
+		Exe_kill_step:=20;
+	20:
+		IF NT_StartProcess_Kill.ERR THEN
+			Exe_kill_step:=0;
+		ELSE
+			Exe_kill_step:=30;
+		END_IF;
+
+	30:
+		NT_StartProcess_Kill.START:=TRUE;
+		Exe_kill_step:=40;
+	40:
+		IF NOT NT_StartProcess_Kill.BUSY THEN
+			NT_StartProcess_Kill.START:=FALSE;
+			Exe_Kill_Done:=TRUE;
+			Exe_kill_step:=0;
+		END_IF;
+END_CASE;
+
+NT_StartProcess_Kill(
+	NETID:='' ,
+	PATHSTR:= ,
+	DIRNAME:= , 
+	COMNDLINE:= , 
+	START:= ,
+	ERRID=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_LoadOpcIocShellExe" Id="{e69e9ea4-205f-45b3-85e7-e1c1b3150dfb}" FolderPath="TC\">
+      <Implementation>
+        <ST><![CDATA[R_TRIG_Exeload(CLK:=bExe_load_Prog, Q=> );
+LoadOpcIocTON(PT:=T#10S);
+CASE Exe_load_step OF
+	0:
+		LoadOpcIocTON.IN:=TRUE;
+		IF R_TRIG_Exeload.Q THEN
+			NT_StartProcess_Load.START:=FALSE;
+			NT_StartProcess_Load.PATHSTR:='C:\HZB\OpcIocShell\AKControlIOC\startTwinCATOPCServer.bat';
+			Exe_load_step:=10;
+		END_IF;
+	10:
+		IF LoadOpcIocTON.Q THEN
+			NT_StartProcess_Load.START:=TRUE;
+			Exe_load_step:=20;
+		END_IF
+	20:
+		LoadOpcIocTON.IN:=FALSE;
+		IF NT_StartProcess_Load.ERR THEN
+			Exe_load_step:=0;
+		ELSE
+			Exe_load_step:=30;
+		END_IF;
+	30:
+		IF NOT NT_StartProcess_Load.BUSY THEN
+			NT_StartProcess_Load.START:=FALSE;
+			Exe_Load_Done:=TRUE;
+			Exe_load_step:=0;
+		END_IF;
+END_CASE;
+
+NT_StartProcess_Load(
+	NETID:='' ,
+	PATHSTR:= ,
+	DIRNAME:= , 
+	COMNDLINE:= , 
+	START:= ,
+	ERRID=> );
+]]></ST>
+      </Implementation>
+    </Action>
     <Action Name="A_PosDiffDetectiion" Id="{e857c546-d367-4f19-9434-ed29c144eb6f}" FolderPath="Axis\">
       <Implementation>
         <ST><![CDATA[IF ABS(PosDiff_LeftTopLin_actual)>PosDiff_LeftTopLin THEN
@@ -5553,7 +5667,9 @@ END_CASE
       </Implementation>
     </Action>
     <LineIds Name="MAIN">
+      <LineId Id="2412" Count="0" />
       <LineId Id="352" Count="0" />
+      <LineId Id="2413" Count="8" />
       <LineId Id="74" Count="4" />
       <LineId Id="634" Count="0" />
       <LineId Id="633" Count="0" />
@@ -5589,6 +5705,8 @@ END_CASE
       <LineId Id="1507" Count="0" />
       <LineId Id="2176" Count="4" />
       <LineId Id="1947" Count="0" />
+      <LineId Id="2437" Count="4" />
+      <LineId Id="2436" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckHardwareEmergencyStopStatus">
       <LineId Id="2" Count="0" />
@@ -5762,6 +5880,36 @@ END_CASE
       <LineId Id="33" Count="1" />
       <LineId Id="1" Count="0" />
       <LineId Id="31" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.A_KillOpcIocShellExe">
+      <LineId Id="2" Count="0" />
+      <LineId Id="4" Count="4" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="11" Count="4" />
+      <LineId Id="17" Count="3" />
+      <LineId Id="28" Count="8" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="37" Count="10" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.A_LoadOpcIocShellExe">
+      <LineId Id="2" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="4" Count="1" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="6" Count="2" />
+      <LineId Id="11" Count="2" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="18" Count="2" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="34" Count="2" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="37" Count="10" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_PosDiffDetectiion">
       <LineId Id="0" Count="2" />

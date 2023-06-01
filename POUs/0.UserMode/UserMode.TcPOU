@@ -94,6 +94,7 @@ VAR
 	HysteresisMoving_PhaseLower:BOOL;
 	NoneHysteresisMoving_PhaseLower:BOOL;
 	(*Spectroscopy scanning Mode*)
+	IsSSMotionMode:BOOL;
 	RegularMotionMode:BOOL;
 	SSMotionMode:BOOL;
 	SS_StepSize:LREAL:=0.001;
@@ -227,6 +228,13 @@ A_PhaseUpperMotion();
 (*PhaseLower运动*)
 A_PhaseLowerMotion();
 (*Spectroscopy scanning Mode*)
+IF IsSSMotionMode THEN
+	SSMotionMode:=TRUE;
+	RegularMotionMode:=FALSE;
+ELSE
+	SSMotionMode:=FALSE;
+	RegularMotionMode:=TRUE;
+END_IF
 IF	SSMotionMode AND NOT RegularMotionMode THEN
 	A_SpectroscopyScanningMotion();
 END_IF
@@ -1560,9 +1568,7 @@ END_IF
       <LineId Id="545" Count="0" />
       <LineId Id="1190" Count="0" />
       <LineId Id="1205" Count="0" />
-      <LineId Id="445" Count="0" />
-      <LineId Id="550" Count="0" />
-      <LineId Id="528" Count="0" />
+      <LineId Id="1385" Count="9" />
       <LineId Id="551" Count="0" />
       <LineId Id="1011" Count="0" />
     </LineIds>
