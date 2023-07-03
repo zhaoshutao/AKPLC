@@ -180,6 +180,14 @@ VAR
 	Threshold_GapChangeFlag: LREAL;
 	Threshold_TaperChangeFlag: LREAL;
 	TaperAndGapSafetyfactor: LREAL:=1;
+	//Chain protection
+	ChainProtection_On: BOOL;
+	ChainProtection_MaxGapValue: LREAL;
+	ChainProtection_Done: BOOL;
+	ChainProtection_Error: BOOL;
+	ChainProtection_ErrorID: INT;
+	ChainProtection_ErrorDescription: STRING;
+
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -218,7 +226,6 @@ A_InitCompensationData();
 A_CheckInputPosVelo();
 (*检查光栅读数是否在范围内*)
 A_CheckLinearEncoder();
-
 (*常规磁间隙开合*)
 //IF RegularMotionMode AND NOT SSMotionMode THEN
 A_RegularMotion();
@@ -651,7 +658,7 @@ IF btn_UserPhaseLowerMove THEN
 		btn_UserPhaseLowerStop:=TRUE;
 		btn_UserPhaseLowerMove:=FALSE;
 		Error:=TRUE;
-		ErrorId:=811;
+		ErrorId:=812;
 		ErrorDescription:='target PhaseLower position out of range,please check';
 		RETURN;
 	ELSE
@@ -664,7 +671,7 @@ IF btn_UserPhaseLowerMove THEN
 		btn_UserPhaseLowerStop:=TRUE;
 		btn_UserPhaseLowerMove:=FALSE;
 		Error:=TRUE;
-		ErrorId:=812;
+		ErrorId:=813;
 		ErrorDescription:='target PhaseLower velocity out of range,please check';
 		RETURN;
 	ELSE
@@ -673,6 +680,15 @@ IF btn_UserPhaseLowerMove THEN
 		ErrorId:=0;
 		ErrorDescription:='';
 	END_IF
+END_IF
+(*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
+IF ChainProtection_On AND UserGapPositionDisplay<ChainProtection_MaxGapValue AND btn_UserPhaseLowerMove THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=814;
+		ErrorDescription:='Please Move Gap to MaxGapValue first before move Phase';
+		RETURN;
 END_IF
 
 (*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
@@ -844,7 +860,15 @@ IF btn_UserPhaseUpperMove THEN
 		ErrorDescription:='';
 	END_IF
 END_IF
-
+(*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
+IF ChainProtection_On AND UserGapPositionDisplay<ChainProtection_MaxGapValue AND btn_UserPhaseUpperMove THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=811;
+		ErrorDescription:='Please Move Gap to MaxGapValue first before move Phase';
+		RETURN;
+END_IF
 (*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
 //只在m=和n=0的时候判断，否则会出现一些BUG，比如往大间隙开时，运动到位后m不能回到0.
 IF m_state_PhaseUpper=0 AND n_state_PhaseUpper=0 THEN
@@ -1559,7 +1583,6 @@ END_IF
       <LineId Id="81" Count="0" />
       <LineId Id="1150" Count="3" />
       <LineId Id="544" Count="0" />
-      <LineId Id="1154" Count="0" />
       <LineId Id="406" Count="0" />
       <LineId Id="548" Count="0" />
       <LineId Id="530" Count="0" />
@@ -1734,6 +1757,8 @@ END_IF
       <LineId Id="259" Count="0" />
       <LineId Id="226" Count="0" />
       <LineId Id="240" Count="0" />
+      <LineId Id="345" Count="7" />
+      <LineId Id="344" Count="0" />
       <LineId Id="342" Count="1" />
       <LineId Id="294" Count="1" />
       <LineId Id="299" Count="1" />
@@ -1778,6 +1803,8 @@ END_IF
       <LineId Id="259" Count="0" />
       <LineId Id="226" Count="0" />
       <LineId Id="240" Count="0" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="346" Count="6" />
       <LineId Id="342" Count="1" />
       <LineId Id="294" Count="1" />
       <LineId Id="299" Count="1" />
