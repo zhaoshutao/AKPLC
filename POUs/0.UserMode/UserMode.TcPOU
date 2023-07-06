@@ -184,8 +184,8 @@ VAR
 	GapPhase_ChainProtection_On:BOOL;
 	GapPhase_ChainProtection_MaxGapValue: LREAL;
 	//Global Chain protection
-	BeamLineChainProtectionReady:BOOL;
-	StorageRingChainProtectionReady:BOOL;
+	Global_ChainProtection_BeamLineReady:BOOL;
+	Global_ChainProtection_StorageRingReady:BOOL;
 	
 	Global_ChainProtection_On: BOOL;
 	Global_ChainProtection_MaxGapValue: LREAL;
@@ -208,6 +208,7 @@ VAR
 	Global_ChainProtection_Out2 AT%Q* :BOOL;
 	Global_ChainProtection_Out3 AT%Q* :BOOL;
 	Global_ChainProtection_Out4 AT%Q* :BOOL;
+	Global_ChainProtection_TON_Stop2Move:TON;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -492,7 +493,7 @@ IF NOT IDControlReady THEN
 	RETURN;
 END_IF
 //判断束线是否给出就位信号，暂时由参数表给出TRUE，最终将由IOC接受PV
-IF 	NOT BeamLineChainProtectionReady THEN
+IF 	NOT Global_ChainProtection_BeamLineReady THEN
 	Global_ChainProtection_Done:=FALSE;
 	Global_ChainProtection_Error:= TRUE;
 	Global_ChainProtection_ErrorID:= 102;
@@ -500,7 +501,7 @@ IF 	NOT BeamLineChainProtectionReady THEN
 	RETURN;
 END_IF	
 //判断储存环是否给出就位信号，暂时由参数表给出TRUE，最终将由IOC接受PV
-IF 	NOT StorageRingChainProtectionReady THEN
+IF 	NOT Global_ChainProtection_StorageRingReady THEN
 	Global_ChainProtection_Done:=FALSE;
 	Global_ChainProtection_Error:= TRUE;
 	Global_ChainProtection_ErrorID:= 102;
@@ -537,10 +538,14 @@ IF Global_ChainProtection_Triggered THEN
 				btn_UserPhaseLowerStop:=TRUE;
 				btn_UserGapStop:=TRUE;
 			ELSE
-				Global_ChainProtection_State:=2;
+				Global_ChainProtection_TON_Stop2Move(PT:=T#0.5S);
+				Global_ChainProtection_TON_Stop2Move.IN:=TRUE;
+				IF Global_ChainProtection_TON_Stop2Move.Q THEN
+					Global_ChainProtection_State:=2;
+				END_IF
 			END_IF
 		2://3.将磁间隙打开到至最大阈值
-			Global_ChainProtection_TON.PT:=INT_TO_TIME(LREAL_TO_INT(Global_ChainProtection_MaxGapValue/Global_ChainProtection_MoveVelocity+30));
+			Global_ChainProtection_TON(PT:=INT_TO_TIME(LREAL_TO_INT(Global_ChainProtection_MaxGapValue/Global_ChainProtection_MoveVelocity+30))*1000);
 			Global_ChainProtection_TON.IN:=TRUE;
 			UserGapPositionNew:=Global_ChainProtection_MaxGapValue;
 			UserGapVelocityNew:=Global_ChainProtection_MoveVelocity;
@@ -1795,6 +1800,7 @@ END_IF
       <LineId Id="78" Count="0" />
       <LineId Id="85" Count="1" />
       <LineId Id="79" Count="0" />
+      <LineId Id="184" Count="3" />
       <LineId Id="83" Count="0" />
       <LineId Id="82" Count="0" />
       <LineId Id="84" Count="0" />
