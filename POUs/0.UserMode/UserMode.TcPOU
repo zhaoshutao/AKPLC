@@ -180,14 +180,34 @@ VAR
 	Threshold_GapChangeFlag: LREAL;
 	Threshold_TaperChangeFlag: LREAL;
 	TaperAndGapSafetyfactor: LREAL:=1;
-	//Chain protection
-	ChainProtection_On: BOOL;
-	ChainProtection_MaxGapValue: LREAL;
-	ChainProtection_Done: BOOL;
-	ChainProtection_Error: BOOL;
-	ChainProtection_ErrorID: INT;
-	ChainProtection_ErrorDescription: STRING;
-
+	//GapPhase Chain protection
+	GapPhase_ChainProtection_On:BOOL;
+	GapPhase_ChainProtection_MaxGapValue: LREAL;
+	//Global Chain protection
+	BeamLineChainProtectionReady:BOOL;
+	StorageRingChainProtectionReady:BOOL;
+	
+	Global_ChainProtection_On: BOOL;
+	Global_ChainProtection_MaxGapValue: LREAL;
+	Global_ChainProtection_MoveVelocity: LREAL;
+	Global_ChainProtection_Done: BOOL;
+	Global_ChainProtection_Error: BOOL;
+	Global_ChainProtection_ErrorID: INT;
+	Global_ChainProtection_ErrorDescription: STRING;
+	Global_ChainProtection_ManualOperation:BOOL:=TRUE;
+	Global_ChainProtection_FTRIG:F_TRIG;
+	Global_ChainProtection_TON:TON;
+	Global_ChainProtection_Triggered:BOOL;
+	Global_ChainProtection_In:BOOL;
+	Global_ChainProtection_In1 AT%I* :BOOL;//下降沿表示触发
+	Global_ChainProtection_In2 AT%I* :BOOL;
+	Global_ChainProtection_In3 AT%I* :BOOL;
+	Global_ChainProtection_In4 AT%I* :BOOL;
+	Global_ChainProtection_State:DINT;
+	Global_ChainProtection_Out1 AT%Q* :BOOL;//上升沿标识到达最大间隙，连锁保护成功
+	Global_ChainProtection_Out2 AT%Q* :BOOL;
+	Global_ChainProtection_Out3 AT%Q* :BOOL;
+	Global_ChainProtection_Out4 AT%Q* :BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -245,7 +265,8 @@ END_IF
 IF	SSMotionMode AND NOT RegularMotionMode THEN
 	A_SpectroscopyScanningMotion();
 END_IF
-]]></ST>
+(*GlobalChainProtection*)
+A_GlobalChainProtection();]]></ST>
     </Implementation>
     <Action Name="A_CheckCoupleStatus" Id="{ec531655-4226-4156-a0f2-db7d67f06866}">
       <Implementation>
@@ -446,6 +467,100 @@ IF Pos_RightBottomLin <UserMode.min_UserGapPositionNew/2 THEN
 END_IF
 
 ]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_GlobalChainProtection" Id="{e669936c-707a-412d-bc8c-56220ed9fb1a}">
+      <Implementation>
+        <ST><![CDATA[//硬线输入定义
+Global_ChainProtection_In:=Global_ChainProtection_In1 AND Global_ChainProtection_In2
+					AND	Global_ChainProtection_In3 AND Global_ChainProtection_In4;
+//硬线输出定义
+Global_ChainProtection_Out1:=Global_ChainProtection_Done;
+Global_ChainProtection_Out2:=Global_ChainProtection_Done;
+Global_ChainProtection_Out3:=Global_ChainProtection_Done;
+Global_ChainProtection_Out4:=Global_ChainProtection_Done;
+//总开关
+IF NOT Global_ChainProtection_On THEN
+	RETURN;
+END_IF
+//判断插入件状态，是否就位
+IF NOT IDControlReady THEN
+	Global_ChainProtection_Done:=FALSE;
+	Global_ChainProtection_Error:= TRUE;
+	Global_ChainProtection_ErrorID:= 101;
+	Global_ChainProtection_ErrorDescription:='ID NOT READY!';
+	RETURN;
+END_IF
+//判断束线是否给出就位信号，暂时由参数表给出TRUE，最终将由IOC接受PV
+IF 	NOT BeamLineChainProtectionReady THEN
+	Global_ChainProtection_Done:=FALSE;
+	Global_ChainProtection_Error:= TRUE;
+	Global_ChainProtection_ErrorID:= 102;
+	Global_ChainProtection_ErrorDescription:='BeamLineChainProtection NOT Ready';
+	RETURN;
+END_IF	
+//判断储存环是否给出就位信号，暂时由参数表给出TRUE，最终将由IOC接受PV
+IF 	NOT StorageRingChainProtectionReady THEN
+	Global_ChainProtection_Done:=FALSE;
+	Global_ChainProtection_Error:= TRUE;
+	Global_ChainProtection_ErrorID:= 102;
+	Global_ChainProtection_ErrorDescription:='StorageRingChainProtection NOT Ready';
+	RETURN;
+END_IF
+//
+//全局连锁保护程序开始
+//
+//0.检测到下降沿，触发
+//1.判断电机是否在开启状态,没有就打开电源
+//2.判断是否在Moving状态,若有就Stop
+//3.将磁间隙打开到至最大阈值
+//4.到位后给出反馈，且安全PLC触发
+Global_ChainProtection_FTRIG(CLK:=Global_ChainProtection_In OR Global_ChainProtection_ManualOperation);
+IF Global_ChainProtection_FTRIG.Q THEN
+	Global_ChainProtection_Triggered:=TRUE;
+END_IF
+IF Global_ChainProtection_Triggered THEN
+	CASE Global_ChainProtection_State OF
+		0://1.判断电机是否在开启状态,没有就打开电源
+			IF st_Power=1 THEN
+				Global_ChainProtection_State:=1;
+			ELSE
+				btn_PowerOn:=TRUE;
+				IF btn_PowerOn THEN
+					A_PowerOn();
+				END_IF
+			END_IF
+		1://2.判断是否在Moving状态,若有就Stop
+			IF MAIN.moveStatusLeftTop OR MAIN.moveStatusRightTop OR MAIN.moveStatusLeftBottom OR MAIN.moveStatusRightBottom
+						OR MAIN.moveStatusPhaseUpper OR MAIN.moveStatusPhaseLower THEN
+				btn_UserPhaseUpperStop:=TRUE;
+				btn_UserPhaseLowerStop:=TRUE;
+				btn_UserGapStop:=TRUE;
+			ELSE
+				Global_ChainProtection_State:=2;
+			END_IF
+		2://3.将磁间隙打开到至最大阈值
+			Global_ChainProtection_TON.PT:=INT_TO_TIME(LREAL_TO_INT(Global_ChainProtection_MaxGapValue/Global_ChainProtection_MoveVelocity+30));
+			Global_ChainProtection_TON.IN:=TRUE;
+			UserGapPositionNew:=Global_ChainProtection_MaxGapValue;
+			UserGapVelocityNew:=Global_ChainProtection_MoveVelocity;
+			btn_UserGapMove:=TRUE;
+			IF FB_MOVE.BCGapDone THEN
+				Global_ChainProtection_State:=88;
+			END_IF
+			IF Global_ChainProtection_TON.Q THEN//如果150s后，还没有运动到指定gap，则报错
+				Global_ChainProtection_State:=-100;
+			END_IF
+		88://4.到位后给出反馈，且安全PLC触发
+			Global_ChainProtection_Done:=TRUE;
+			Plc_EmergencyStop:=FALSE;		
+		-100:
+			Global_ChainProtection_Done:=FALSE;
+			Global_ChainProtection_Error:=TRUE;
+			Global_ChainProtection_ErrorID:=102;
+			Global_ChainProtection_ErrorDescription:='NOT MOVING TO MAXGAP';
+	END_CASE
+END_IF]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_InitCompensationData" Id="{1e6a9c39-c8a5-4c48-b57c-71effe5e3747}">
@@ -682,7 +797,7 @@ IF btn_UserPhaseLowerMove THEN
 	END_IF
 END_IF
 (*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
-IF ChainProtection_On AND UserGapPositionDisplay<ChainProtection_MaxGapValue AND btn_UserPhaseLowerMove THEN
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay<GapPhase_ChainProtection_MaxGapValue AND btn_UserPhaseLowerMove THEN
 		btn_UserPhaseLowerStop:=TRUE;
 		btn_UserPhaseLowerMove:=FALSE;
 		Error:=TRUE;
@@ -861,7 +976,7 @@ IF btn_UserPhaseUpperMove THEN
 	END_IF
 END_IF
 (*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
-IF ChainProtection_On AND UserGapPositionDisplay<ChainProtection_MaxGapValue AND btn_UserPhaseUpperMove THEN
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay<GapPhase_ChainProtection_MaxGapValue AND btn_UserPhaseUpperMove THEN
 		btn_UserPhaseUpperStop:=TRUE;
 		btn_UserPhaseUpperMove:=FALSE;
 		Error:=TRUE;
@@ -1593,7 +1708,7 @@ END_IF
       <LineId Id="1205" Count="0" />
       <LineId Id="1385" Count="9" />
       <LineId Id="551" Count="0" />
-      <LineId Id="1011" Count="0" />
+      <LineId Id="1598" Count="1" />
     </LineIds>
     <LineIds Name="UserMode.A_CheckCoupleStatus">
       <LineId Id="2" Count="9" />
@@ -1651,6 +1766,54 @@ END_IF
       <LineId Id="62" Count="0" />
       <LineId Id="99" Count="0" />
       <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="UserMode.A_GlobalChainProtection">
+      <LineId Id="144" Count="0" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="140" Count="3" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="148" Count="7" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="156" Count="6" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="163" Count="5" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="172" Count="1" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="175" Count="2" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="87" Count="3" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="65" Count="11" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="85" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="107" Count="1" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="115" Count="1" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="11" Count="1" />
     </LineIds>
     <LineIds Name="UserMode.A_InitCompensationData">
       <LineId Id="206" Count="0" />

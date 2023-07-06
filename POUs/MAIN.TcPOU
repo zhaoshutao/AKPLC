@@ -3738,6 +3738,8 @@ END_IF
 	moveStatusRightTop:=RightTopLin.Status.Moving;
 	moveStatusLeftBottom:=LeftBottomLin.Status.Moving;
 	moveStatusRightBottom:=RightBottomLin.Status.Moving;
+	moveStatusPhaseUpper:=PhaseUpperLin.Status.Moving;
+	moveStatusPhaseLower:=PhaseLowerLin.Status.Moving;
 	
 	moveStatusAllAxis:=moveStatusLeftTop AND moveStatusRightTop AND moveStatusLeftBottom AND moveStatusRightBottom
 						AND moveStatusPhaseUpper AND moveStatusPhaseLower;
@@ -5847,6 +5849,7 @@ END_CASE
       <LineId Id="36" Count="0" />
       <LineId Id="6" Count="0" />
       <LineId Id="9" Count="3" />
+      <LineId Id="45" Count="1" />
       <LineId Id="38" Count="0" />
       <LineId Id="13" Count="5" />
       <LineId Id="39" Count="0" />
