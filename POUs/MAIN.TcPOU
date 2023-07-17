@@ -84,6 +84,8 @@ VAR
 	Torque_RT AT%I*:INT;
 	Torque_LB AT%I*:INT;
 	Torque_RB AT%I*:INT;
+	Torque_PU AT%I*:INT;
+	Torque_PL AT%I*:INT;
 (**)
 	btn_setAxisPosition: BOOL;
 	ValueSet_LeftTop:LREAL;
@@ -236,6 +238,8 @@ VAR
 	R_TRIG_Exekill: R_TRIG;
 	Exe_Kill_Done:BOOL;
 	LoadOpcIocTON:TON;
+	
+	GetDriveStatusTON:TON;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*加载Ricipe参数*)
@@ -612,31 +616,19 @@ END_IF
 	m_GetDriveStatusState:=0;
 	bReloadDriveDiagMessageAndNumber:=FALSE;
 END_IF
+GetDriveStatusTON(PT:=T#10S);
 A_GetDriverStatusMC();
 CASE m_GetDriveStatusState OF
 	0:
-		(*IF 	fb_SoEReadDiagMessage_LeftTop.bError
-			OR fb_SoEReadDiagMessage_RightTop.bError
-			OR fb_SoEReadDiagMessage_LeftBottom.bError
-			OR fb_SoEReadDiagMessage_RightBottom.bError
-			OR fb_SoEReadDiagMessage_PhaseUpper.bError
-			OR fb_SoEReadDiagMessage_PhaseLower.bError
-			OR FB_SoEReadDiagNumber_LeftTop.bError
-			OR FB_SoEReadDiagNumber_RightTop.bError
-			OR FB_SoEReadDiagNumber_LeftBottom.bError
-			OR FB_SoEReadDiagNumber_RightBottom.bError 
-			OR FB_SoEReadDiagNumber_PhaseUpper.bError
-			OR FB_SoEReadDiagNumber_PhaseLower.bError THEN
-			m_GetDriveStatusState:=-100;
-		ELSE
-			m_GetDriveStatusState:=1;
-		END_IF
-		*)
+		GetDriveStatusTON.IN:=TRUE;
 		m_GetDriveStatusState:=1;
 	1:
-		bDriveDiagMessageAndNumber:=TRUE;
-		m_GetDriveStatusState:=2;
+		IF GetDriveStatusTON.Q THEN
+			bDriveDiagMessageAndNumber:=TRUE;
+			m_GetDriveStatusState:=2;
+		END_IF
 	2:
+		GetDriveStatusTON.IN:=FALSE;
 		DriveDiagMessage_LeftTop:=fb_SoEReadDiagMessage_LeftTop.sDiagMessage.strData;
 		DriveDiagMessage_RightTop:=fb_SoEReadDiagMessage_RightTop.sDiagMessage.strData;
 		DriveDiagMessage_LeftBottom:=fb_SoEReadDiagMessage_LeftBottom.sDiagMessage.strData;
@@ -699,6 +691,7 @@ CASE m_GetDriveStatusState OF
 		A_GetDriverStatusMC();
 		GetDriveStatusStateDone:=TRUE;
 		GetDriveStatusStateError:=FALSE;
+		m_GetDriveStatusState:=0;
 	-100:
 		bDriveDiagMessageAndNumber:=FALSE;
 		A_GetDriverStatusMC();
@@ -5783,14 +5776,16 @@ END_CASE
     <LineIds Name="MAIN.A_GetDriverStatus">
       <LineId Id="192" Count="2" />
       <LineId Id="191" Count="0" />
+      <LineId Id="234" Count="0" />
       <LineId Id="102" Count="0" />
-      <LineId Id="104" Count="5" />
-      <LineId Id="195" Count="1" />
-      <LineId Id="110" Count="3" />
-      <LineId Id="197" Count="1" />
-      <LineId Id="114" Count="3" />
-      <LineId Id="227" Count="1" />
-      <LineId Id="118" Count="7" />
+      <LineId Id="104" Count="1" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="236" Count="2" />
+      <LineId Id="120" Count="1" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="122" Count="3" />
       <LineId Id="200" Count="1" />
       <LineId Id="126" Count="4" />
       <LineId Id="202" Count="1" />
@@ -5810,7 +5805,9 @@ END_CASE
       <LineId Id="226" Count="0" />
       <LineId Id="222" Count="2" />
       <LineId Id="213" Count="0" />
-      <LineId Id="152" Count="9" />
+      <LineId Id="152" Count="4" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="157" Count="4" />
       <LineId Id="230" Count="2" />
       <LineId Id="229" Count="0" />
       <LineId Id="162" Count="0" />

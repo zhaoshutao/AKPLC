@@ -19,11 +19,11 @@ VAR
 	UserGapPositionDisplay_FromLeftTop:LREAL;
 	UserGapPositionDisplay_FromLeftBottom:LREAL;
 (*PhaseUpper Move*)
-	UserPhaseUpperPositionNew:LREAL:=1;//target
-	UserPhaseUpperVelocityNew:LREAL:=1;//target
+	UserPhaseUpperPositionNew:LREAL:=0;//target
+	UserPhaseUpperVelocityNew:LREAL:=0.5;//target
 (*PhaseUpper Move*)
-	UserPhaseLowerPositionNew:LREAL:=1;//target
-	UserPhaseLowerVelocityNew:LREAL:=1;//target
+	UserPhaseLowerPositionNew:LREAL:=0;//target
+	UserPhaseLowerVelocityNew:LREAL:=0.5;//target
 	UserPhaseLowerPositionDisplay:LREAL;//current
 	UserPhaseLowerVelocityDisplay:LREAL;//current
 	//
@@ -144,11 +144,11 @@ VAR
 	inRange_UserPhaseLowerVelocityNew:BOOL;
 	//
 	min_UserTaperPositionNew: LREAL:=0;;
-	max_UserTaperPositionNew: LREAL:=4;
+	max_UserTaperPositionNew: LREAL:=0;
 	inRange_UserTaperPositionNew: BOOL;
 	//
 	min_UserTaperVelocityNew: LREAL:=0;
-	max_UserTaperVelocityNew: LREAL:=1;
+	max_UserTaperVelocityNew: LREAL:=0;
 	inRange_UserTaperVelocityNew: BOOL;
 	//
 	min_SS_StepSize	: LREAL:=0;
@@ -209,6 +209,7 @@ VAR
 	Global_ChainProtection_Out3 AT%Q* :BOOL;
 	Global_ChainProtection_Out4 AT%Q* :BOOL;
 	Global_ChainProtection_TON_Stop2Move:TON;
+	Global_ChainProtection_TON_Power2Move:TON;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -547,11 +548,15 @@ IF Global_ChainProtection_Triggered THEN
 		2://3.将磁间隙打开到至最大阈值
 			Global_ChainProtection_TON(PT:=INT_TO_TIME(LREAL_TO_INT(Global_ChainProtection_MaxGapValue/Global_ChainProtection_MoveVelocity+30))*1000);
 			Global_ChainProtection_TON.IN:=TRUE;
+			Global_ChainProtection_TON_Power2Move(PT:=T#0.1S);
+			Global_ChainProtection_TON_Power2Move.IN:=TRUE;
 			UserGapPositionNew:=Global_ChainProtection_MaxGapValue;
 			UserGapVelocityNew:=Global_ChainProtection_MoveVelocity;
 			btn_UserGapMove:=TRUE;
-			IF FB_MOVE.BCGapDone THEN
-				Global_ChainProtection_State:=88;
+			IF Global_ChainProtection_TON_Power2Move.Q THEN
+				IF FB_MOVE.BCGapDone THEN
+					Global_ChainProtection_State:=88;
+				END_IF
 			END_IF
 			IF Global_ChainProtection_TON.Q THEN//如果150s后，还没有运动到指定gap，则报错
 				Global_ChainProtection_State:=-100;
@@ -1806,11 +1811,14 @@ END_IF
       <LineId Id="84" Count="0" />
       <LineId Id="101" Count="0" />
       <LineId Id="98" Count="0" />
+      <LineId Id="189" Count="1" />
       <LineId Id="81" Count="0" />
       <LineId Id="92" Count="0" />
       <LineId Id="91" Count="0" />
+      <LineId Id="191" Count="0" />
       <LineId Id="107" Count="1" />
       <LineId Id="106" Count="0" />
+      <LineId Id="192" Count="0" />
       <LineId Id="109" Count="1" />
       <LineId Id="103" Count="0" />
       <LineId Id="96" Count="1" />
