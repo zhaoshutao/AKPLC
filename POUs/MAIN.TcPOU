@@ -70,14 +70,6 @@ VAR
 	moveDoneRightTop: BOOL;
 	moveDoneLeftBottom: BOOL;
 	moveDoneRightBottom: BOOL;
-	moveDoneAllAxis: BOOL;
-	moveStatusLeftTop: BOOL;
-	moveStatusRightTop: BOOL;
-	moveStatusLeftBottom: BOOL;
-	moveStatusRightBottom: BOOL;
-	moveStatusPhaseUpper: BOOL;
-	moveStatusPhaseLower: BOOL;
-	moveStatusAllAxis: BOOL;
 
 (*Torque*)
 	Torque_LT AT%I*:INT;

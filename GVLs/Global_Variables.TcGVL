@@ -5,6 +5,10 @@
 VAR_GLOBAL
 (*IDControl Ready*)
 	IDControlReady:BOOL;
+(*key Command*)
+	btn_Power:BOOL;
+	btn_PowerOn: BOOL;
+	btn_PowerOff: BOOL;
 (*Error Massage*)
 	Error:BOOL;
 	ErrorID:DINT;
@@ -85,6 +89,15 @@ VAR_GLOBAL
 	Threshold_BottomVelo_SingleCarrier: LREAL:=2;
 	Threshold_LeftVelo_SingleCarrier: LREAL:=2;
 	Threshold_RightVelo_SingleCarrier: LREAL:=2;
+		(*Moving or notmoving*)
+	moveDoneAllAxis: BOOL;
+	moveStatusLeftTop: BOOL;
+	moveStatusRightTop: BOOL;
+	moveStatusLeftBottom: BOOL;
+	moveStatusRightBottom: BOOL;
+	moveStatusPhaseUpper: BOOL;
+	moveStatusPhaseLower: BOOL;
+	moveStatusAllAxis: BOOL;
 (*Compensation Value*)
 	M_Compensation:ARRAY[1..18] OF Struct_M_Compensation
 :=[

@@ -55,7 +55,7 @@
       <XmlArchive>
         <Data>
           <o xml:space="preserve" t="RecipeDefinitionObject">
-            <v n="UniqueIdGenerator">"531"</v>
+            <v n="UniqueIdGenerator">"567"</v>
             <o n="Recipes" t="RecipeList">
               <l n="Recipes" t="ArrayList" />
             </o>
@@ -1542,6 +1542,16 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
+                  <v n="VarName">"UserMode.Threshold_motorsTargetPosCalculate"</v>
+                  <v n="VarType" t="TypeClass">LReal</v>
+                  <v n="VarTypeAsString">"LREAL"</v>
+                  <v n="Name">""</v>
+                  <n n="Boundaries" />
+                  <v n="Id">567</v>
+                  <v n="Comment">""</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
+                </o>
+                <o>
                   <v n="VarName">"HysteresisError"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
@@ -2016,7 +2026,7 @@
                   <v n="VarUserDefTypeAsString">"INT"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.GapPhase_ChainProtection_On"</v>
+                  <v n="VarName">"UserMode.Global_ChainProtection_MPS_On"</v>
                   <v n="VarType" t="TypeClass">Bool</v>
                   <v n="VarTypeAsString">"BOOL"</v>
                   <v n="Name">""</v>
@@ -2025,12 +2035,26 @@
                     <v n="LowerBound">""</v>
                     <v n="UpperBound">""</v>
                   </o>
-                  <v n="Id">492</v>
+                  <v n="Id">563</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.GapPhase_ChainProtection_MaxGapValue"</v>
+                  <v n="VarName">"UserMode.Global_ChainProtection_MPS_StorageRingReady"</v>
+                  <v n="VarType" t="TypeClass">Bool</v>
+                  <v n="VarTypeAsString">"BOOL"</v>
+                  <v n="Name">""</v>
+                  <o n="Boundaries" t="RecipeVariableBoundaries">
+                    <v n="Type" t="TypeClass">Bool</v>
+                    <v n="LowerBound">""</v>
+                    <v n="UpperBound">""</v>
+                  </o>
+                  <v n="Id">562</v>
+                  <v n="Comment">""</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
+                </o>
+                <o>
+                  <v n="VarName">"UserMode.Global_ChainProtection_MPS_MaxGapValue"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -2039,50 +2063,12 @@
                     <v n="LowerBound">""</v>
                     <v n="UpperBound">""</v>
                   </o>
-                  <v n="Id">496</v>
+                  <v n="Id">561</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.Global_ChainProtection_On"</v>
-                  <v n="VarType" t="TypeClass">Bool</v>
-                  <v n="VarTypeAsString">"BOOL"</v>
-                  <v n="Name">""</v>
-                  <o n="Boundaries" t="RecipeVariableBoundaries">
-                    <v n="Type" t="TypeClass">Bool</v>
-                    <v n="LowerBound">""</v>
-                    <v n="UpperBound">""</v>
-                  </o>
-                  <v n="Id">501</v>
-                  <v n="Comment">""</v>
-                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
-                </o>
-                <o>
-                  <v n="VarName">"UserMode.Global_ChainProtection_BeamLineReady"</v>
-                  <v n="VarType" t="TypeClass">Bool</v>
-                  <v n="VarTypeAsString">"BOOL"</v>
-                  <v n="Name">""</v>
-                  <o n="Boundaries" t="RecipeVariableBoundaries">
-                    <v n="Type" t="TypeClass">Bool</v>
-                    <v n="LowerBound">""</v>
-                    <v n="UpperBound">""</v>
-                  </o>
-                  <v n="Id">521</v>
-                  <v n="Comment">""</v>
-                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
-                </o>
-                <o>
-                  <v n="VarName">"UserMode.Global_ChainProtection_StorageRingReady"</v>
-                  <v n="VarType" t="TypeClass">Bool</v>
-                  <v n="VarTypeAsString">"BOOL"</v>
-                  <v n="Name">""</v>
-                  <n n="Boundaries" />
-                  <v n="Id">531</v>
-                  <v n="Comment">""</v>
-                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
-                </o>
-                <o>
-                  <v n="VarName">"UserMode.Global_ChainProtection_MaxGapValue"</v>
+                  <v n="VarName">"UserMode.Global_ChainProtection_MPS_MoveVelocity"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -2091,17 +2077,47 @@
                     <v n="LowerBound">""</v>
                     <v n="UpperBound">""</v>
                   </o>
-                  <v n="Id">505</v>
+                  <v n="Id">560</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.Global_ChainProtection_MoveVelocity"</v>
+                  <v n="VarName">"UserMode.Global_ChainProtection_EPS_On"</v>
+                  <v n="VarType" t="TypeClass">Bool</v>
+                  <v n="VarTypeAsString">"BOOL"</v>
+                  <v n="Name">""</v>
+                  <n n="Boundaries" />
+                  <v n="Id">559</v>
+                  <v n="Comment">""</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
+                </o>
+                <o>
+                  <v n="VarName">"UserMode.Global_ChainProtection_EPS_BeamLineReady"</v>
+                  <v n="VarType" t="TypeClass">Bool</v>
+                  <v n="VarTypeAsString">"BOOL"</v>
+                  <v n="Name">""</v>
+                  <n n="Boundaries" />
+                  <v n="Id">558</v>
+                  <v n="Comment">""</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
+                </o>
+                <o>
+                  <v n="VarName">"UserMode.Global_ChainProtection_EPS_MaxGapValue"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
                   <n n="Boundaries" />
-                  <v n="Id">513</v>
+                  <v n="Id">557</v>
+                  <v n="Comment">""</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
+                </o>
+                <o>
+                  <v n="VarName">"UserMode.Global_ChainProtection_EPS_MoveVelocity"</v>
+                  <v n="VarType" t="TypeClass">LReal</v>
+                  <v n="VarTypeAsString">"LREAL"</v>
+                  <v n="Name">""</v>
+                  <n n="Boundaries" />
+                  <v n="Id">556</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
