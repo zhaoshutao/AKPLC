@@ -5,10 +5,15 @@
 VAR_GLOBAL
 (*IDControl Ready*)
 	IDControlReady:BOOL;
+(*RecipeDescription*)
+RecipeSavedDate:STRING;
+RecipeDescription:STRING;
 (*key Command*)
 	btn_Power:BOOL;
 	btn_PowerOn: BOOL;
 	btn_PowerOff: BOOL;
+(*Reset*)
+btn_Reset:BOOL;
 (*Error Massage*)
 	Error:BOOL;
 	ErrorID:DINT;
@@ -98,6 +103,7 @@ VAR_GLOBAL
 	moveStatusPhaseUpper: BOOL;
 	moveStatusPhaseLower: BOOL;
 	moveStatusAllAxis: BOOL;
+	moveStatusAnyAxis: BOOL;
 (*Compensation Value*)
 	M_Compensation:ARRAY[1..18] OF Struct_M_Compensation
 :=[
@@ -134,16 +140,16 @@ VAR_GLOBAL
 	Led_Run  AT %Q*:BOOL;
 	Led_Error  AT %Q*:BOOL;
 (*LimitSwitch*)
-	LS_LeftTop_Top  :BOOL;
-	LS_LeftTop_Bottom  :BOOL;
-	LS_RightTop_Top  :BOOL;
-	LS_RightTop_Bottom  :BOOL;
-	LS_LeftBottom_Top  :BOOL;
-	LS_LeftBottom_Bottom  :BOOL;
-	LS_RightBottom_Top :BOOL;
-	LS_RightBottom_Bottom  :BOOL;
-	Unreach_LS_Top:BOOL;
-	Unreach_LS_Bottom:BOOL;
+	LS_LeftTop_Far  :BOOL;
+	LS_LeftTop_Near  :BOOL;
+	LS_RightTop_Far  :BOOL;
+	LS_RightTop_Near  :BOOL;
+	LS_LeftBottom_Far  :BOOL;
+	LS_LeftBottom_Near  :BOOL;
+	LS_RightBottom_Far :BOOL;
+	LS_RightBottom_Near  :BOOL;
+	Unreach_LS_Far:BOOL;
+	Unreach_LS_Near:BOOL;
 	LS_PhaseUpper_Entrance  :BOOL;
 	LS_PhaseUpper_Exit  :BOOL;
 	LS_PhaseLower_Entrance :BOOL;
@@ -271,11 +277,12 @@ VAR_GLOBAL
 	Diff_UserBottomVelo_actual: LREAL;
 	Diff_UserLeftVelo_actual: LREAL;
 	Diff_UserRightVelo_actual:  LREAL;
+	TaperFunctionSolidOn:BOOL;//该ID是否有taper需求，taper总开关，只在参数表生效
 	TaperOrNot:BOOL;
 	UserTaperPositionActual:LREAL;
 	UserTaperVelocityActual:LREAL;
 (***********************Power status and couple statatus***********************)
-	st_Power:DINT;
+	st_Power:BOOL;
 	st_Couple:DINT;
 (************************FB***********************)
 	FB_Power:FB_Power;

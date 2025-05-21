@@ -11,8 +11,6 @@ VAR
 	PowerState: INT;(*PowerOnState*)
 	ton_t: TON;
 (*Key Command*)
-	btn_PowerOn: BOOL;
-	btn_PowerOff: BOOL;
 	LeftTopLinPositionNew:LREAL;
 	LeftTopLinVelocityNew:LREAL:=1;
 	btn_LeftTopLinMove:BOOL;
@@ -63,13 +61,16 @@ VAR
 	(*¼ì²âµ½ÏÞÎ»£¬»Ö¸´Move×´Ì¬*)
 	FTrig_ReachLS: F_TRIG;
 	FTrig_btn_GapMove: F_TRIG;
-	btn_Power: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*********************************************************************Monitor All Carrirt Position***********************************************)
 A_MonitoringAllAxis();
 (*********************************************************************A_PosDiffDetection***********************************************)
 A_PosDiffDetection();
+//
+IF st_Power=1 THEN
+	InitDone:=TRUE;
+END_IF
 (*********************************************************************btn_PowerOn************************************************************)
 IF btn_Power AND st_Power=0 THEN
 	btn_PowerOn:=TRUE;
@@ -93,8 +94,20 @@ IF NOT btn_PowerOff THEN
 	END_IF
 END_IF
 (*********************************************************************LeftTop_MOVE*****************************************************************)
-IF InitDone THEN
+//IF InitDone THEN
 	IF btn_LeftTopLinMove THEN
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
 		CASE LeftTopLin_m_state OF
 			0:
 				FB_Move.Mode:=4;						(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£¬3£ºtaperÄ£Ê½£¬4£ºDebugÄ£Ê½*)
@@ -120,9 +133,9 @@ IF InitDone THEN
 				LED_Run:=FALSE;
 		END_CASE
 	END_IF
-END_IF
+//END_IF
 (*******************************************************************LeftTop_STOP********************************************************************)
-IF btn_LeftTopLinStop THEN
+IF btn_LeftTopLinStop OR btn_reset THEN
 	LED_Run:=FALSE;
 	FB_Move.LeftTopReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
 	FB_Move();											(*Æô¶¯FB_Move*)
@@ -147,12 +160,25 @@ IF btn_LeftTopLinStop THEN
 				btn_LeftTopLinStop:=FALSE;						(*»Ö¸´×´Ì¬*)
 				FB_Move.LeftTopReset:=FALSE;					(*ÔËÐÐFB*)
 				LeftTopLin_s_state:=0;
+				btn_reset:=FALSE;
 		END_CASE
 
 END_IF
 (*********************************************************************RightTop_MOVE*****************************************************************)
-IF InitDone THEN
+//IF InitDone THEN
 	IF btn_RightTopLinMove THEN
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
 		CASE RightTopLin_m_state OF
 			0:
 				FB_Move.Mode:=4;						(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£¬3£ºtaperÄ£Ê½£¬4£ºDebugÄ£Ê½*)
@@ -178,9 +204,9 @@ IF InitDone THEN
 				LED_Run:=FALSE;
 		END_CASE
 	END_IF
-END_IF
+//END_IF
 (*******************************************************************RightTop_STOP********************************************************************)
-IF btn_RightTopLinStop THEN
+IF btn_RightTopLinStop OR btn_reset THEN
 	LED_Run:=FALSE;
 	FB_Move.RightTopReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
 	FB_Move();											(*Æô¶¯FB_Move*)
@@ -205,12 +231,25 @@ IF btn_RightTopLinStop THEN
 				btn_RightTopLinStop:=FALSE;						(*»Ö¸´×´Ì¬*)
 				FB_Move.RightTopReset:=FALSE;					(*ÔËÐÐFB*)
 				RightTopLin_s_state:=0;
+				btn_reset:=FALSE;
 		END_CASE
 
 END_IF
 (*********************************************************************LeftBottom_MOVE*****************************************************************)
-IF InitDone THEN
+//IF InitDone THEN
 	IF btn_LeftBottomLinMove THEN
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
 		CASE LeftBottomLin_m_state OF
 			0:
 				FB_Move.Mode:=4;						(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£¬3£ºtaperÄ£Ê½£¬4£ºDebugÄ£Ê½*)
@@ -236,9 +275,9 @@ IF InitDone THEN
 				LED_Run:=FALSE;
 		END_CASE
 	END_IF
-END_IF
+//END_IF
 (*******************************************************************LeftBottom_STOP********************************************************************)
-IF btn_LeftBottomLinStop THEN
+IF btn_LeftBottomLinStop OR btn_reset THEN
 	LED_Run:=FALSE;
 	FB_Move.LeftBottomReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
 	FB_Move();											(*Æô¶¯FB_Move*)
@@ -263,13 +302,26 @@ IF btn_LeftBottomLinStop THEN
 				btn_LeftBottomLinStop:=FALSE;						(*»Ö¸´×´Ì¬*)
 				FB_Move.LeftBottomReset:=FALSE;					(*ÔËÐÐFB*)
 				LeftBottomLin_s_state:=0;
+				btn_reset:=FALSE;
 		END_CASE
 
 END_IF
 
 (*********************************************************************RightTop_MOVE*****************************************************************)
-IF InitDone THEN
+//IF InitDone THEN
 	IF btn_RightBottomLinMove THEN
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
 		CASE RightBottomLin_m_state OF
 			0:
 				FB_Move.Mode:=4;						(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£¬3£ºtaperÄ£Ê½£¬4£ºDebugÄ£Ê½*)
@@ -295,9 +347,9 @@ IF InitDone THEN
 				LED_Run:=FALSE;
 		END_CASE
 	END_IF
-END_IF
+//END_IF
 (*******************************************************************RightBottom_STOP********************************************************************)
-IF btn_RightBottomLinStop THEN
+IF btn_RightBottomLinStop OR btn_reset THEN
 	LED_Run:=FALSE;
 	FB_Move.RightBottomReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
 	FB_Move();											(*Æô¶¯FB_Move*)
@@ -322,6 +374,7 @@ IF btn_RightBottomLinStop THEN
 				btn_RightBottomLinStop:=FALSE;						(*»Ö¸´×´Ì¬*)
 				FB_Move.RightBottomReset:=FALSE;					(*ÔËÐÐFB*)
 				RightBottomLin_s_state:=0;
+				btn_reset:=FALSE;
 		END_CASE
 
 END_IF
@@ -360,7 +413,7 @@ ELSE
 END_IF
 (*********************************************************************ÏÞÎ»Åö´¥×´Ì¬»Ö¸´************************************************************)
 (*Èç¹û¼ì²âµ½ÏØÏÞÎ»¿ª¹ØÏÂ½µÑØ£¬»Ö¸´Move×´Ì¬*)
-FTrig_ReachLS(CLK:=Unreach_LS_Top AND Unreach_LS_Bottom);
+FTrig_ReachLS(CLK:=Unreach_LS_Far AND Unreach_LS_Near);
 IF FTrig_ReachLS.Q THEN
 	btn_LeftTopLinStop:=TRUE;
 	btn_RightTopLinStop:=TRUE;
@@ -378,16 +431,16 @@ IF btn_LeftBottomLinStop THEN
 END_IF
 
 (*Èç¹û¼ì²âµ½TopÏÞÎ»¿ª¹ØFALSE£¬ÇÒÄ¿±êÎ»ÖÃ´óÓÚµ±Ç°Î»ÖÃÊ±£¬»òÕßÏà·´Ê±£¬»Ö¸´Move×´Ì¬*)
-IF NOT Unreach_LS_Top AND LeftTopLinPositionNew-Pos_LeftTopLin>0.0005 AND btn_LeftTopLinMove THEN
+IF NOT Unreach_LS_Far AND LeftTopLinPositionNew-Pos_LeftTopLin>0.0005 AND btn_LeftTopLinMove THEN
 	btn_LeftTopLinStop:=TRUE;
 END_IF
-IF NOT Unreach_LS_Bottom AND RightTopLinPositionNew-Pos_RightTopLin<0.0005 AND btn_RightTopLinMove THEN
+IF NOT Unreach_LS_Near AND RightTopLinPositionNew-Pos_RightTopLin<0.0005 AND btn_RightTopLinMove THEN
 	btn_RightTopLinStop:=TRUE;
 END_IF
-IF NOT Unreach_LS_Top AND LeftBottomLinPositionNew-Pos_LeftBottomLin>0.0005 AND btn_LeftBottomLinMove THEN
+IF NOT Unreach_LS_Far AND LeftBottomLinPositionNew-Pos_LeftBottomLin>0.0005 AND btn_LeftBottomLinMove THEN
 	btn_LeftBottomLinStop:=TRUE;
 END_IF
-IF NOT Unreach_LS_Bottom AND RightBottomLinPositionNew-Pos_RightBottomLin<0.0005 AND btn_RightBottomLinMove THEN
+IF NOT Unreach_LS_Near AND RightBottomLinPositionNew-Pos_RightBottomLin<0.0005 AND btn_RightBottomLinMove THEN
 	btn_RightBottomLinStop:=TRUE;
 END_IF]]></ST>
     </Implementation>
@@ -616,10 +669,8 @@ END_CASE]]></ST>
       </Implementation>
     </Action>
     <LineIds Name="DebugMode">
-      <LineId Id="65" Count="3" />
-      <LineId Id="445" Count="7" />
-      <LineId Id="444" Count="0" />
-      <LineId Id="69" Count="310" />
+      <LineId Id="516" Count="378" />
+      <LineId Id="379" Count="0" />
     </LineIds>
     <LineIds Name="DebugMode.A_monitoringAllAxis">
       <LineId Id="0" Count="76" />
@@ -628,10 +679,12 @@ END_CASE]]></ST>
       <LineId Id="0" Count="19" />
     </LineIds>
     <LineIds Name="DebugMode.A_PowerOff">
-      <LineId Id="0" Count="58" />
+      <LineId Id="60" Count="57" />
+      <LineId Id="58" Count="0" />
     </LineIds>
     <LineIds Name="DebugMode.A_PowerOn">
-      <LineId Id="0" Count="51" />
+      <LineId Id="53" Count="50" />
+      <LineId Id="51" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

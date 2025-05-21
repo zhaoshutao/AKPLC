@@ -176,15 +176,15 @@ IF btn_PowerOff THEN
 END_IF
 (*********************************************************************ÏÞÎ»Åö´¥×´Ì¬»Ö¸´************************************************************)
 (*Èç¹û¼ì²âµ½ÏØÏÞÎ»¿ª¹ØÏÂ½µÑØ£¬»Ö¸´Move×´Ì¬*)
-FTrig_ReachLS(CLK:=Unreach_LS_Top AND Unreach_LS_Bottom);
+FTrig_ReachLS(CLK:=Unreach_LS_Far AND Unreach_LS_Near);
 IF FTrig_ReachLS.Q THEN
 	btn_BCGapStop:=TRUE;
 END_IF
 (*Èç¹û¼ì²âµ½TopÏÞÎ»¿ª¹ØFALSE£¬ÇÒÄ¿±êÎ»ÖÃ´óÓÚµ±Ç°Î»ÖÃÊ±£¬»òÕßÏà·´Ê±£¬»Ö¸´Move×´Ì¬*)
-IF NOT Unreach_LS_Top AND BCGapPositionNew-BCGapPositionDisplay>0.0005 AND btn_BCGapMove THEN
+IF NOT Unreach_LS_Far AND BCGapPositionNew-BCGapPositionDisplay>0.0005 AND btn_BCGapMove THEN
 	btn_BCGapStop:=TRUE;
 END_IF
-IF NOT Unreach_LS_Bottom AND BCGapPositionNew-BCGapPositionDisplay<0.0005 AND btn_BCGapMove THEN
+IF NOT Unreach_LS_Near AND BCGapPositionNew-BCGapPositionDisplay<0.0005 AND btn_BCGapMove THEN
 	btn_BCGapStop:=TRUE;
 END_IF]]></ST>
     </Implementation>

@@ -135,15 +135,15 @@ IF btn_PowerOff THEN
 END_IF
 (*********************************************************************ÏÞÎ»Åö´¥×´Ì¬»Ö¸´************************************************************)
 (*Èç¹û¼ì²âµ½ÏØÏÞÎ»¿ª¹ØÏÂ½µÑØ£¬»Ö¸´Move×´Ì¬*)
-FTrig_ReachLS(CLK:=Unreach_LS_Top AND Unreach_LS_Bottom);
+FTrig_ReachLS(CLK:=Unreach_LS_Far AND Unreach_LS_Near);
 IF FTrig_ReachLS.Q THEN
 	btn_TaperStop:=TRUE;
 END_IF
 (*Èç¹û¼ì²âµ½TopÏÞÎ»¿ª¹ØFALSE£¬ÇÒÄ¿±êÎ»ÖÃ´óÓÚµ±Ç°Î»ÖÃÊ±£¬»òÕßÏà·´Ê±£¬»Ö¸´Move×´Ì¬*)
-IF NOT Unreach_LS_Top AND TaperLargePositionNew-TaperLargePositionActual>0.0005 AND btn_TaperMove THEN
+IF NOT Unreach_LS_Far AND TaperLargePositionNew-TaperLargePositionActual>0.0005 AND btn_TaperMove THEN
 	btn_TaperStop:=TRUE;
 END_IF
-IF NOT Unreach_LS_Bottom AND TaperLargePositionNew-TaperLargePositionActual<0.0005 AND btn_TaperMove THEN
+IF NOT Unreach_LS_Near AND TaperLargePositionNew-TaperLargePositionActual<0.0005 AND btn_TaperMove THEN
 	btn_TaperStop:=TRUE;
 END_IF]]></ST>
     </Implementation>
@@ -337,7 +337,9 @@ END_CASE]]></ST>
       <LineId Id="29" Count="7" />
       <LineId Id="163" Count="7" />
       <LineId Id="162" Count="0" />
-      <LineId Id="37" Count="96" />
+      <LineId Id="37" Count="85" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="124" Count="9" />
     </LineIds>
     <LineIds Name="TaperMode.A_MonitoringAllAxis">
       <LineId Id="0" Count="72" />
