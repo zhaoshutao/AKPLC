@@ -430,7 +430,10 @@ IF SafePLCRunOK OR simulation THEN
 END_IF
 
 (*RestartDrivers*)
-A_RestartDrivers();]]></ST>
+A_RestartDrivers();
+
+(*检查光栅读数是否在范围内*)
+A_CheckLinearEncoder();]]></ST>
     </Implementation>
     <Folder Name="Axis" Id="{3eb3b5b7-a5d5-4d06-be7c-05e13125e510}" />
     <Folder Name="Check" Id="{010fabb8-e18f-4120-a985-758e6fd55448}" />
@@ -703,6 +706,146 @@ IF (NOT LS_LeftTop_Top AND NOT LS_LeftTop_Bottom) OR  (NOT  LS_RightTop_Top AND 
 	ErrorID:=2;
 END_IF
 *)]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_CheckLinearEncoder" Id="{04ef6a41-e2ba-498d-aa00-f823237bb5de}" FolderPath="Check\">
+      <Implementation>
+        <ST><![CDATA[//如果没有使用光栅、或者光栅参数没设置好，则不检查光栅位置
+IF NOT USELinearEncoder OR NOT PositionBiasDone THEN
+	RETURN;
+END_IF
+IF Pos_LeftTopLin <=0 THEN
+	ErrorID:=1101;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftTopLin <=0';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightTopLin <=0 THEN
+	ErrorID:=1102;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightTopLin <=0';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_LeftBottomLin <=0 THEN
+	ErrorID:=1103;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftBottomLin <=0';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightBottomLin <=0 THEN
+	ErrorID:=1104;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightBottomLin <=0';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+
+//
+//Gap方向
+//
+min_UserLEProtectionGapPosition:=min_UserGapPositionNew-min_ThresholdGapSoft2LEProtection;//回程误差有0.1mm
+max_UserLEProtectionGapPosition:=max_UserGapPositionNew+max_ThresholdGapSoft2LEProtection;
+//
+IF Pos_LeftTopLin >max_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1105;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftTopLin >max_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightTopLin >max_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1106;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightTopLin>max_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_LeftBottomLin >max_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1107;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftBottomLin >max_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightBottomLin >max_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1108;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightBottomLin >max_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+
+
+IF Pos_LeftTopLin <min_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1109;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftTopLin <min_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightTopLin <min_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1110;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightTopLin<min_UserLEProtectionGapPosition/2';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_LeftBottomLin <min_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1111;
+	Error:=TRUE;
+	ErrorDescription:='Pos_LeftBottomLin <min_UserLEProtectionGapPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_RightBottomLin <min_UserLEProtectionGapPosition/2 THEN
+	ErrorID:=1112;
+	Error:=TRUE;
+	ErrorDescription:='Pos_RightBottomLin <min_UserLEProtectionGapPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+//
+//PhaseUpper方向
+//
+min_UserLEProtectionPhaseUpperPosition:=min_UserPhaseUpperPositionNew-min_ThresholdPhaseUpperSoft2LEProtection;//回程误差有0.1mm
+max_UserLEProtectionPhaseUpperPosition:=max_UserPhaseUpperPositionNew+max_ThresholdPhaseUpperSoft2LEProtection;
+IF Pos_PhaseUpperLin >max_UserLEProtectionPhaseUpperPosition THEN
+	ErrorID:=1113;
+	Error:=TRUE;
+	ErrorDescription:=' Pos_PhaseUpperLin >max_UserLEProtectionPhaseUpperPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_PhaseUpperLin < min_UserLEProtectionPhaseUpperPosition THEN
+	ErrorID:=1114;
+	Error:=TRUE;
+	ErrorDescription:=' Pos_PhaseUpperLin >< min_UserLEProtectionPhaseUpperPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+//
+//PhaseLower方向
+//
+min_UserLEProtectionPhaseLowerPosition:=min_UserPhaseLowerPositionNew-min_ThresholdPhaseLowerSoft2LEProtection;//回程误差有0.1mm
+max_UserLEProtectionPhaseLowerPosition:=max_UserPhaseLowerPositionNew+max_ThresholdPhaseLowerSoft2LEProtection;
+IF Pos_PhaseLowerLin >max_UserLEProtectionPhaseLowerPosition THEN
+	ErrorID:=1115;
+	Error:=TRUE;
+	ErrorDescription:=' Pos_PhaseLowerLin >max_UserLEProtectionPhaseLowerPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+IF Pos_PhaseLowerLin < min_UserLEProtectionPhaseLowerPosition THEN
+	ErrorID:=1116;
+	Error:=TRUE;
+	ErrorDescription:=' Pos_PhaseLowerLin < min_UserLEProtectionPhaseLowerPosition';
+	FB_PlcEmergencyStop();
+	LED_Error:=TRUE;
+END_IF
+]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_GetDriverStatus" Id="{e05cf975-7b3e-4430-bb2e-a308f4391f1b}" FolderPath="Driver\">
@@ -9234,7 +9377,7 @@ CASE Exe_kill_step OF
 	0:
 		IF R_TRIG_Exekill.Q THEN
 			NT_StartProcess_Kill.START:=FALSE;
-			NT_StartProcess_Kill.PATHSTR:='C:\HZB\OpcIocShell\AKControlIOC\killcmd.bat';
+			NT_StartProcess_Kill.PATHSTR:='C:\HZB\OpcIocShell\IDControlIOC\killcmd.bat';
 			//NT_StartProcess_Kill.DIRNAME:='C:\Program Files (x86)\HZB\OpcIocShell\bin\opcIocShell.exe';
 			Exe_kill_step:=10;
 		END_IF;
@@ -9278,7 +9421,7 @@ CASE Exe_load_step OF
 		LoadOpcIocTON.IN:=TRUE;
 		IF R_TRIG_Exeload.Q THEN
 			NT_StartProcess_Load.START:=FALSE;
-			NT_StartProcess_Load.PATHSTR:='C:\HZB\OpcIocShell\AKControlIOC\startTwinCATOPCServer.bat';
+			NT_StartProcess_Load.PATHSTR:='C:\HZB\OpcIocShell\IDControlIOC\startTwinCATOPCServer.bat';
 			Exe_load_step:=10;
 		END_IF;
 	10:
@@ -11177,6 +11320,8 @@ END_CASE
       <LineId Id="2756" Count="0" />
       <LineId Id="2755" Count="0" />
       <LineId Id="2757" Count="0" />
+      <LineId Id="3090" Count="1" />
+      <LineId Id="3089" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckHardwareEmergencyStopStatus">
       <LineId Id="2" Count="0" />
@@ -11247,6 +11392,43 @@ END_CASE
       <LineId Id="102" Count="0" />
       <LineId Id="112" Count="0" />
       <LineId Id="21" Count="79" />
+    </LineIds>
+    <LineIds Name="MAIN.A_CheckLinearEncoder">
+      <LineId Id="61" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="4" Count="3" />
+      <LineId Id="2" Count="1" />
+      <LineId Id="9" Count="5" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="16" Count="5" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="23" Count="5" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="109" Count="1" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="31" Count="26" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="71" Count="26" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="112" Count="1" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="116" Count="5" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="126" Count="5" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="133" Count="17" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="104" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_GetDriverStatus">
       <LineId Id="240" Count="24" />

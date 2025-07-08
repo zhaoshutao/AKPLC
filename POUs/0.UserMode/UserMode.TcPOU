@@ -114,54 +114,7 @@ VAR
 	SS_StartPositionDisplay:LREAL;
 	RTRG_SS_StartPositionDisplay:R_TRIG;
 	SS_InitStartPositionDone:BOOL;
-	(*input protection*)
-	//
-	min_UserGapPositionNew:LREAL:=10;
-	max_UserGapPositionNew:LREAL:=200;
-	inRange_UserGapPositionNew:BOOL;
-	//LE protection position
-	min_UserLEProtectionGapPosition:LREAL;
-	min_ThresholdGapSoft2LEProtection:LREAL;
-	max_UserLEProtectionGapPosition:LREAL;
-	max_ThresholdGapSoft2LEProtection:LREAL;
-	//
-	min_UserGapVelocityNew:LREAL:=0;
-	max_UserGapVelocityNew:LREAL:=2;
-	inRange_UserGapVelocityNew:BOOL;
-	//
-	min_UserPhaseUpperPositionNew:LREAL:=-10;
-	max_UserPhaseUpperPositionNew:LREAL:=10;
-	inRange_UserPhaseUpperPositionNew:BOOL;
-	//LE protection position
-	min_UserLEProtectionPhaseUpperPosition:LREAL;
-	max_UserLEProtectionPhaseUpperPosition:LREAL;
-	min_ThresholdPhaseUpperSoft2LEProtection:LREAL;
-	max_ThresholdPhaseUpperSoft2LEProtection:LREAL;
-	//
-	min_UserPhaseUpperVelocityNew:LREAL:=0;
-	max_UserPhaseUpperVelocityNew:LREAL:=1;
-	inRange_UserPhaseUpperVelocityNew:BOOL;
-	//
-	min_UserPhaseLowerPositionNew:LREAL:=-10;
-	max_UserPhaseLowerPositionNew:LREAL:=10;
-	inRange_UserPhaseLowerPositionNew:BOOL;
-	//LE protection position
-	min_UserLEProtectionPhaseLowerPosition:LREAL;
-	max_UserLEProtectionPhaseLowerPosition:LREAL;
-	min_ThresholdPhaseLowerSoft2LEProtection:LREAL;
-	max_ThresholdPhaseLowerSoft2LEProtection:LREAL;
-	//
-	min_UserPhaseLowerVelocityNew:LREAL:=0;
-	max_UserPhaseLowerVelocityNew:LREAL:=1;
-	inRange_UserPhaseLowerVelocityNew:BOOL;
-	//
-	min_UserTaperPositionNew: LREAL:=0;;
-	max_UserTaperPositionNew: LREAL:=0;
-	inRange_UserTaperPositionNew: BOOL;
-	//
-	min_UserTaperVelocityNew: LREAL:=0;
-	max_UserTaperVelocityNew: LREAL:=0;
-	inRange_UserTaperVelocityNew: BOOL;
+	
 	//
 	min_SS_StepSize	: LREAL:=0;
 	max_SS_StepSize	: LREAL:=200;
@@ -299,8 +252,7 @@ A_InitCompensationData();
 (*目标位置和速度保护*)
 A_CheckMotorsPos();
 
-(*检查光栅读数是否在范围内*)
-A_CheckLinearEncoder();
+
 (*常规磁间隙开合*)
 //IF RegularMotionMode AND NOT SSMotionMode THEN
 A_RegularMotion();
@@ -341,146 +293,6 @@ A_OneKeyToMaxGap();]]></ST>
 		ErrorDescription:='couple stutas error';
 	END_IF
 END_IF]]></ST>
-      </Implementation>
-    </Action>
-    <Action Name="A_CheckLinearEncoder" Id="{04ef6a41-e2ba-498d-aa00-f823237bb5de}">
-      <Implementation>
-        <ST><![CDATA[//如果没有使用光栅、或者光栅参数没设置好，则不检查光栅位置
-IF NOT USELinearEncoder OR NOT PositionBiasDone THEN
-	RETURN;
-END_IF
-IF Pos_LeftTopLin <=0 THEN
-	ErrorID:=1101;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftTopLin <=0';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightTopLin <=0 THEN
-	ErrorID:=1102;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightTopLin <=0';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_LeftBottomLin <=0 THEN
-	ErrorID:=1103;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftBottomLin <=0';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightBottomLin <=0 THEN
-	ErrorID:=1104;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightBottomLin <=0';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-
-//
-//Gap方向
-//
-min_UserLEProtectionGapPosition:=min_UserGapPositionNew-min_ThresholdGapSoft2LEProtection;//回程误差有0.1mm
-max_UserLEProtectionGapPosition:=max_UserGapPositionNew+max_ThresholdGapSoft2LEProtection;
-//
-IF Pos_LeftTopLin >max_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1105;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftTopLin >max_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightTopLin >max_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1106;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightTopLin>max_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_LeftBottomLin >max_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1107;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftBottomLin >max_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightBottomLin >max_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1108;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightBottomLin >max_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-
-
-IF Pos_LeftTopLin <min_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1109;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftTopLin <min_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightTopLin <min_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1110;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightTopLin<min_UserLEProtectionGapPosition/2';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_LeftBottomLin <min_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1111;
-	Error:=TRUE;
-	ErrorDescription:='Pos_LeftBottomLin <min_UserLEProtectionGapPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_RightBottomLin <min_UserLEProtectionGapPosition/2 THEN
-	ErrorID:=1112;
-	Error:=TRUE;
-	ErrorDescription:='Pos_RightBottomLin <min_UserLEProtectionGapPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-//
-//PhaseUpper方向
-//
-min_UserLEProtectionPhaseUpperPosition:=min_UserPhaseUpperPositionNew-min_ThresholdPhaseUpperSoft2LEProtection;//回程误差有0.1mm
-max_UserLEProtectionPhaseUpperPosition:=max_UserPhaseUpperPositionNew+max_ThresholdPhaseUpperSoft2LEProtection;
-IF Pos_PhaseUpperLin >max_UserLEProtectionPhaseUpperPosition THEN
-	ErrorID:=1113;
-	Error:=TRUE;
-	ErrorDescription:=' Pos_PhaseUpperLin >max_UserLEProtectionPhaseUpperPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_PhaseUpperLin < min_UserLEProtectionPhaseUpperPosition THEN
-	ErrorID:=1114;
-	Error:=TRUE;
-	ErrorDescription:=' Pos_PhaseUpperLin >< min_UserLEProtectionPhaseUpperPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-//
-//PhaseLower方向
-//
-min_UserLEProtectionPhaseLowerPosition:=min_UserPhaseLowerPositionNew-min_ThresholdPhaseLowerSoft2LEProtection;//回程误差有0.1mm
-max_UserLEProtectionPhaseLowerPosition:=max_UserPhaseLowerPositionNew+max_ThresholdPhaseLowerSoft2LEProtection;
-IF Pos_PhaseLowerLin >max_UserLEProtectionPhaseLowerPosition THEN
-	ErrorID:=1115;
-	Error:=TRUE;
-	ErrorDescription:=' Pos_PhaseLowerLin >max_UserLEProtectionPhaseLowerPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-IF Pos_PhaseLowerLin < min_UserLEProtectionPhaseLowerPosition THEN
-	ErrorID:=1116;
-	Error:=TRUE;
-	ErrorDescription:=' Pos_PhaseLowerLin < min_UserLEProtectionPhaseLowerPosition';
-	FB_PlcEmergencyStop();
-	LED_Error:=TRUE;
-END_IF
-]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_CheckMotorsPos" Id="{f3cd81f2-82fa-493f-8c36-20c483307c7d}">
@@ -584,7 +396,7 @@ IF btn_UserGapMove  AND NOT SSMotionMode AND RegularMotionMode THEN
 		ErrorDescription:='target Gap position out of range,please check';
 		RETURN;
 	ELSE
-		btn_UserGapStop:=FALSE;
+		//btn_UserGapStop:=FALSE;
 		Error:=FALSE;
 		ErrorId:=0;
 		ErrorDescription:='';	
@@ -597,7 +409,7 @@ IF btn_UserGapMove  AND NOT SSMotionMode AND RegularMotionMode THEN
 		ErrorDescription:='target Gap velocity out of range,please check';
 		RETURN;
 	ELSE
-		btn_UserGapStop:=FALSE;
+		//btn_UserGapStop:=FALSE;
 		Error:=FALSE;
 		ErrorId:=0;
 		ErrorDescription:='';
@@ -610,7 +422,7 @@ IF btn_UserGapMove  AND NOT SSMotionMode AND RegularMotionMode THEN
 		ErrorDescription:='target Taper Position out of range,please check';
 		RETURN;
 	ELSE
-		btn_UserGapStop:=FALSE;
+		//btn_UserGapStop:=FALSE;
 		Error:=FALSE;
 		ErrorId:=0;
 		ErrorDescription:='';
@@ -623,7 +435,7 @@ IF btn_UserGapMove  AND NOT SSMotionMode AND RegularMotionMode THEN
 		ErrorDescription:='target Taper velocity out of range,please check';
 		RETURN;
 	ELSE
-		btn_UserGapStop:=FALSE;
+		//btn_UserGapStop:=FALSE;
 		Error:=FALSE;
 		ErrorId:=0;
 		ErrorDescription:='';
@@ -966,7 +778,7 @@ IF USE_SingleAxis_Compensation THEN
 	//左轴目标位置解算
 	IF NOT TaperOrNot THEN
 		UserTaperPositionNew:=0;
-		UserTaperPositionDisplay:=0;
+		//UserTaperPositionDisplay:=0;
 	END_IF
 	UserRightGapPositionNew:=UserGapPositionNew+UserTaperPositionNew;
 	//左轴目标位置解算
@@ -2231,7 +2043,8 @@ END_IF
       </Implementation>
     </Action>
     <LineIds Name="UserMode">
-      <LineId Id="2427" Count="56" />
+      <LineId Id="2427" Count="33" />
+      <LineId Id="2462" Count="21" />
       <LineId Id="2414" Count="0" />
       <LineId Id="2485" Count="1" />
     </LineIds>
@@ -2240,43 +2053,6 @@ END_IF
       <LineId Id="13" Count="0" />
       <LineId Id="12" Count="0" />
       <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="UserMode.A_CheckLinearEncoder">
-      <LineId Id="61" Count="0" />
-      <LineId Id="105" Count="0" />
-      <LineId Id="59" Count="1" />
-      <LineId Id="1" Count="0" />
-      <LineId Id="4" Count="3" />
-      <LineId Id="2" Count="1" />
-      <LineId Id="9" Count="5" />
-      <LineId Id="8" Count="0" />
-      <LineId Id="16" Count="5" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="23" Count="5" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="123" Count="0" />
-      <LineId Id="109" Count="1" />
-      <LineId Id="122" Count="0" />
-      <LineId Id="111" Count="0" />
-      <LineId Id="108" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="31" Count="26" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="107" Count="0" />
-      <LineId Id="71" Count="26" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="112" Count="1" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="114" Count="0" />
-      <LineId Id="99" Count="0" />
-      <LineId Id="116" Count="5" />
-      <LineId Id="115" Count="0" />
-      <LineId Id="126" Count="5" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="133" Count="17" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="104" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_CheckMotorsPos">
       <LineId Id="176" Count="2" />

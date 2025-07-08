@@ -10,20 +10,20 @@
               <v>3f2c537f-514a-45f4-b2a3-85271f15fce0</v>
               <v>RECIPEFACTORY</v>
               <v>21fac012-0871-415c-bff9-418e71ceb55a</v>
-              <v>RECIPEMANAGEMENTINITFB_INIT</v>
-              <v>a19fceff-70a1-437d-8676-8ed6bc63c683</v>
+              <v>RECIPEMANAGEMENTINIT</v>
+              <v>645eb6a4-f0e1-4351-a17c-c1aa6ec53666</v>
               <v>RECIPEFACTORYFREERECIPE</v>
               <v>d9474b39-00cf-4946-adcd-d1ad2b1f9a0a</v>
               <v>RECIPEFACTORYFB_INIT</v>
               <v>9701c596-8ac5-4544-b1e7-092805c269e8</v>
-              <v>RECIPEMANAGEMENTINITFB_REINIT</v>
-              <v>5c13c7ce-efc4-4913-ad21-7188b9088354</v>
-              <v>RECIPEMANAGEMENTINIT</v>
-              <v>645eb6a4-f0e1-4351-a17c-c1aa6ec53666</v>
-              <v>RECIPEMANAGEMENTINITINITIALIZE</v>
-              <v>4e9bd1eb-2abe-44bd-972e-3911b56f0136</v>
               <v>RECIPEFACTORYCREATERECIPE</v>
               <v>df6ed356-178a-461a-8388-2dddfcf5ef91</v>
+              <v>RECIPEMANAGEMENTINITFB_INIT</v>
+              <v>a19fceff-70a1-437d-8676-8ed6bc63c683</v>
+              <v>RECIPEMANAGEMENTINITINITIALIZE</v>
+              <v>4e9bd1eb-2abe-44bd-972e-3911b56f0136</v>
+              <v>RECIPEMANAGEMENTINITFB_REINIT</v>
+              <v>5c13c7ce-efc4-4913-ad21-7188b9088354</v>
             </d>
           </o>
           <o n="StorageSettings" t="RecipeManagerStorageSettings">
@@ -55,7 +55,7 @@
       <XmlArchive>
         <Data>
           <o xml:space="preserve" t="RecipeDefinitionObject">
-            <v n="UniqueIdGenerator">"637"</v>
+            <v n="UniqueIdGenerator">"639"</v>
             <o n="Recipes" t="RecipeList">
               <l n="Recipes" t="ArrayList" />
             </o>
@@ -1724,21 +1724,17 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserGapPositionNew"</v>
+                  <v n="VarName">"min_UserGapPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
-                  <o n="Boundaries" t="RecipeVariableBoundaries">
-                    <v n="Type" t="TypeClass">LReal</v>
-                    <v n="LowerBound">""</v>
-                    <v n="UpperBound">""</v>
-                  </o>
-                  <v n="Id">268</v>
+                  <n n="Boundaries" />
+                  <v n="Id">639</v>
                   <v n="Comment">""</v>
-                  <v n="VarUserDefTypeAsString">"LREAL"</v>
+                  <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserGapPositionNew"</v>
+                  <v n="VarName">"max_UserGapPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1752,7 +1748,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_ThresholdGapSoft2LEProtection"</v>
+                  <v n="VarName">"min_ThresholdGapSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1766,7 +1762,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_ThresholdGapSoft2LEProtection"</v>
+                  <v n="VarName">"max_ThresholdGapSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1780,7 +1776,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserGapVelocityNew"</v>
+                  <v n="VarName">"min_UserGapVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1794,7 +1790,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserGapVelocityNew"</v>
+                  <v n="VarName">"max_UserGapVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1808,7 +1804,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserTaperPositionNew"</v>
+                  <v n="VarName">"min_UserTaperPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1822,7 +1818,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserTaperPositionNew"</v>
+                  <v n="VarName">"max_UserTaperPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1836,7 +1832,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserTaperVelocityNew"</v>
+                  <v n="VarName">"min_UserTaperVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1850,7 +1846,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserTaperVelocityNew"</v>
+                  <v n="VarName">"max_UserTaperVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1864,7 +1860,7 @@
                   <v n="VarUserDefTypeAsString">"LREAL"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserPhaseUpperPositionNew"</v>
+                  <v n="VarName">"min_UserPhaseUpperPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1878,7 +1874,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserPhaseUpperPositionNew"</v>
+                  <v n="VarName">"max_UserPhaseUpperPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1892,7 +1888,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_ThresholdPhaseUpperSoft2LEProtection"</v>
+                  <v n="VarName">"min_ThresholdPhaseUpperSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1906,17 +1902,21 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_ThresholdPhaseUpperSoft2LEProtection"</v>
+                  <v n="VarName">"max_ThresholdPhaseUpperSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
-                  <n n="Boundaries" />
+                  <o n="Boundaries" t="RecipeVariableBoundaries">
+                    <v n="Type" t="TypeClass">LReal</v>
+                    <v n="LowerBound">""</v>
+                    <v n="UpperBound">""</v>
+                  </o>
                   <v n="Id">629</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserPhaseUpperVelocityNew"</v>
+                  <v n="VarName">"min_UserPhaseUpperVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1930,7 +1930,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserPhaseUpperVelocityNew"</v>
+                  <v n="VarName">"max_UserPhaseUpperVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1944,7 +1944,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserPhaseLowerPositionNew"</v>
+                  <v n="VarName">"min_UserPhaseLowerPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1958,7 +1958,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserPhaseLowerPositionNew"</v>
+                  <v n="VarName">"max_UserPhaseLowerPositionNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1972,7 +1972,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_ThresholdPhaseLowerSoft2LEProtection"</v>
+                  <v n="VarName">"min_ThresholdPhaseLowerSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -1986,17 +1986,21 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_ThresholdPhaseLowerSoft2LEProtection"</v>
+                  <v n="VarName">"max_ThresholdPhaseLowerSoft2LEProtection"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
-                  <n n="Boundaries" />
+                  <o n="Boundaries" t="RecipeVariableBoundaries">
+                    <v n="Type" t="TypeClass">LReal</v>
+                    <v n="LowerBound">""</v>
+                    <v n="UpperBound">""</v>
+                  </o>
                   <v n="Id">637</v>
                   <v n="Comment">""</v>
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.min_UserPhaseLowerVelocityNew"</v>
+                  <v n="VarName">"min_UserPhaseLowerVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
@@ -2010,7 +2014,7 @@
                   <v n="VarUserDefTypeAsString">"Invalid Type"</v>
                 </o>
                 <o>
-                  <v n="VarName">"UserMode.max_UserPhaseLowerVelocityNew"</v>
+                  <v n="VarName">"max_UserPhaseLowerVelocityNew"</v>
                   <v n="VarType" t="TypeClass">LReal</v>
                   <v n="VarTypeAsString">"LREAL"</v>
                   <v n="Name">""</v>
