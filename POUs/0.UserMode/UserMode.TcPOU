@@ -414,32 +414,6 @@ IF btn_UserGapMove  AND NOT SSMotionMode AND RegularMotionMode THEN
 		ErrorId:=0;
 		ErrorDescription:='';
 	END_IF
-	IF NOT inRange_UserTaperPositionNew THEN
-		btn_UserGapStop:=TRUE;
-		btn_UserGapMove:=FALSE;
-		Error:=TRUE;
-		ErrorId:=803;
-		ErrorDescription:='target Taper Position out of range,please check';
-		RETURN;
-	ELSE
-		//btn_UserGapStop:=FALSE;
-		Error:=FALSE;
-		ErrorId:=0;
-		ErrorDescription:='';
-	END_IF
-	IF NOT inRange_UserTaperVelocityNew THEN
-		btn_UserGapStop:=TRUE;
-		btn_UserGapMove:=FALSE;
-		Error:=TRUE;
-		ErrorId:=804;
-		ErrorDescription:='target Taper velocity out of range,please check';
-		RETURN;
-	ELSE
-		//btn_UserGapStop:=FALSE;
-		Error:=FALSE;
-		ErrorId:=0;
-		ErrorDescription:='';
-	END_IF
 END_IF
 
 //
@@ -458,20 +432,6 @@ IF moveStatusAnyAxis THEN
 		Error:=TRUE;
 		ErrorId:=806;
 		ErrorDescription:='target Gap velocity out of range in moving process!';
-		FB_PlcEmergencyStop();
-	END_IF
-	IF NOT inRange_UserTaperPositionNew THEN
-		btn_UserGapStop:=TRUE;
-		Error:=TRUE;
-		ErrorId:=807;
-		ErrorDescription:='target Taper Position out of range in moving process!';
-		FB_PlcEmergencyStop();
-	END_IF
-	IF NOT inRange_UserTaperVelocityNew THEN
-		btn_UserGapStop:=TRUE;
-		Error:=TRUE;
-		ErrorId:=808;
-		ErrorDescription:='target Taper velocity out of range in moving process!';
 		FB_PlcEmergencyStop();
 	END_IF
 END_IF
@@ -2066,11 +2026,12 @@ END_IF
       <LineId Id="121" Count="0" />
       <LineId Id="32" Count="0" />
       <LineId Id="117" Count="1" />
-      <LineId Id="33" Count="53" />
+      <LineId Id="33" Count="26" />
+      <LineId Id="86" Count="0" />
       <LineId Id="247" Count="0" />
       <LineId Id="87" Count="0" />
       <LineId Id="119" Count="1" />
-      <LineId Id="88" Count="28" />
+      <LineId Id="88" Count="14" />
       <LineId Id="31" Count="0" />
       <LineId Id="28" Count="2" />
       <LineId Id="180" Count="0" />
