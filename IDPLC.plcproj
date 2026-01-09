@@ -110,10 +110,19 @@
     <Compile Include="POUs\CommonFB\MainFB\FB_SetAxisPosition.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\CommonFB\MainFB\FB_SetMotorAxisPosition.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\CommonFB\MainFB\FB_SetPhaseLowerMotorAxisPosition.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\CommonFB\MainFB\FB_SetPhaseUpperAxisPosition.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\CommonFB\MainFB\FB_SetPhaseLowerAxisPosition.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\CommonFB\MainFB\FB_SetPhaseUpperMotorAxisPosition.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\CommonFB\MainFB\FB_Stop.TcPOU">

@@ -21,6 +21,8 @@ btn_Reset:BOOL;
 (*加载配方参数*)
 	LoadRecipeParameters:BOOL;
 	loadParametersDone:BOOL;
+(*Max Velocity Global*)
+	MaxVelocityGlobalVelocity : LREAL;
 (*设置光栅bias done *)	
 	PositionBiasDone:BOOL;
 (*Drive Status*)
@@ -104,6 +106,17 @@ btn_Reset:BOOL;
 	moveStatusPhaseLower: BOOL;
 	moveStatusAllAxis: BOOL;
 	moveStatusAnyAxis: BOOL;
+	
+	(*Moving or notmoving-Motor*)
+	moveDoneAllAxisMotor: BOOL;
+	moveStatusLeftTopMotor: BOOL;
+	moveStatusRightTopMotor: BOOL;
+	moveStatusLeftBottomMotor: BOOL;
+	moveStatusRightBottomMotor: BOOL;
+	moveStatusPhaseUpperMotor: BOOL;
+	moveStatusPhaseLowerMotor: BOOL;
+	moveStatusAllAxisMotor: BOOL;
+	moveStatusAnyAxisMotor: BOOL;
 (*Compensation Value*)
 	M_Compensation:ARRAY[1..18] OF Struct_M_Compensation
 :=[
@@ -197,6 +210,13 @@ btn_Reset:BOOL;
 	RightBottomLin:axis_ref;
 	PhaseUpperLin:axis_ref;
 	PhaseLowerLin:axis_ref;
+(*aixs_ref-motor*)
+	LeftTopMotor: axis_ref;
+	RightTopMotor:axis_ref;
+	LeftBottomMotor:axis_ref;
+	RightBottomMotor:axis_ref;
+	PhaseUpperMotor:axis_ref;
+	PhaseLowerMotor:axis_ref;
 (*axis Position*)
 	Pos_LeftTopLin: LREAL;
 	Pos_RightTopLin:LREAL;
@@ -204,6 +224,27 @@ btn_Reset:BOOL;
 	Pos_RightBottomLin:LREAL;
 	Pos_PhaseUpperLin:LREAL;
 	Pos_PhaseLowerLin:LREAL;
+(*axis Position-motor*)
+	Pos_LeftTopMotor: LREAL;
+	Pos_RightTopMotor:LREAL;
+	Pos_LeftBottomMotor:LREAL;
+	Pos_RightBottomMotor:LREAL;
+	Pos_PhaseUpperMotor:LREAL;
+	Pos_PhaseLowerMotor:LREAL;
+(*axis Position-Delta*)
+	DeltaPos_LeftTop: LREAL;
+	DeltaPos_RightTop:LREAL;
+	DeltaPos_LeftBottom:LREAL;
+	DeltaPos_RightBottom:LREAL;
+	DeltaPos_PhaseUpper:LREAL;
+	DeltaPos_PhaseLower:LREAL;
+(*axis Position-Threshold*)
+	ThresholdDeltaPos_LeftTop: LREAL:=0.2;
+	ThresholdDeltaPos_RightTop:LREAL:=0.2;
+	ThresholdDeltaPos_LeftBottom:LREAL:=0.2;
+	ThresholdDeltaPos_RightBottom:LREAL:=0.2;
+	ThresholdDeltaPos_PhaseUpper:LREAL:=0.2;
+	ThresholdDeltaPos_PhaseLower:LREAL:=0.2;
 (*axis Velocity*)
 	Velo_LeftTopLin: LREAL;
 	Velo_RightTopLin:LREAL;
@@ -211,6 +252,48 @@ btn_Reset:BOOL;
 	Velo_RightBottomLin:LREAL;
 	Velo_PhaseUpperLin:LREAL;
 	Velo_PhaseLowerLin:LREAL;
+(*axis Velocity-motor*)
+	Velo_LeftTopMotor: LREAL;
+	Velo_RightTopMotor:LREAL;
+	Velo_LeftBottomMotor:LREAL;
+	Velo_RightBottomMotor:LREAL;
+	Velo_PhaseUpperMotor:LREAL;
+	Velo_PhaseLowerMotor:LREAL;
+(*axis Velocity-Delta*)
+	DeltaVelo_LeftTop: LREAL;
+	DeltaVelo_RightTop:LREAL;
+	DeltaVelo_LeftBottom:LREAL;
+	DeltaVelo_RightBottom:LREAL;
+	DeltaVelo_PhaseUpper:LREAL;
+	DeltaVelo_PhaseLower:LREAL;
+(*axis Velocity-ThresholdDelta*)
+	ThresholdDeltaVelo_LeftTop: LREAL:=0.1;
+	ThresholdDeltaVelo_RightTop:LREAL:=0.1;
+	ThresholdDeltaVelo_LeftBottom:LREAL:=0.1;
+	ThresholdDeltaVelo_RightBottom:LREAL:=0.1;
+	ThresholdDeltaVelo_PhaseUpper:LREAL:=0.1;
+	ThresholdDeltaVelo_PhaseLower:LREAL:=0.1;
+(*axis Torque-motor*)
+	Torque_LeftTopLin: LREAL;
+	Torque_RightTopLin:LREAL;
+	Torque_LeftBottomLin:LREAL;
+	Torque_RightBottomLin:LREAL;
+	Torque_PhaseUpperLin:LREAL;
+	Torque_PhaseLowerLin:LREAL;
+(*axis Torque-motor*)
+	Torque_LeftTopMotor: LREAL;
+	Torque_RightTopMotor:LREAL;
+	Torque_LeftBottomMotor:LREAL;
+	Torque_RightBottomMotor:LREAL;
+	Torque_PhaseUpperMotor:LREAL;
+	Torque_PhaseLowerMotor:LREAL;
+(*axis Torque-Delta*)
+	DeltaTorque_LeftTop: LREAL;
+	DeltaTorque_RightTop:LREAL;
+	DeltaTorque_LeftBottom:LREAL;
+	DeltaTorque_RightBottom:LREAL;
+	DeltaTorque_PhaseUpper:LREAL;
+	DeltaTorque_PhaseLower:LREAL;
 (*Lag Distance*)
 	PosDiff_LeftTopLin_actual: LREAL;
 	PosDiff_RightTopLin_actual:LREAL;
@@ -218,6 +301,20 @@ btn_Reset:BOOL;
 	PosDiff_RightBottomLin_actual:LREAL;
 	PosDiff_PhaseUpperLin_actual:LREAL;
 	PosDiff_PhaseLowerLin_actual:LREAL;
+(*Lag Distance-Motor*)
+	PosDiff_LeftTopMotor_actual: LREAL;
+	PosDiff_RightTopMotor_actual:LREAL;
+	PosDiff_LeftBottomMotor_actual:LREAL;
+	PosDiff_RightBottomMotor_actual:LREAL;
+	PosDiff_PhaseUpperMotor_actual:LREAL;
+	PosDiff_PhaseLowerMotor_actual:LREAL;
+(*Delta LagDistance*)
+	DeltaPosDiff_LeftTop_actual: LREAL;
+	DeltaPosDiff_RightTop_actual:LREAL;
+	DeltaPosDiff_LeftBottom_actual:LREAL;
+	DeltaPosDiff_RightBottom_actual:LREAL;
+	DeltaPosDiff_PhaseUpper_actual:LREAL;
+	DeltaPosDiff_PhaseLower_actual:LREAL;
 (********************Gap Mode*************************)
 (**)
 	GapPositionActual:LREAL;
