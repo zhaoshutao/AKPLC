@@ -59,6 +59,9 @@
     <Compile Include="DUTs\ST_P183.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\ST_PolarizationParam.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GVLs\Global_Variables.TcGVL">
       <SubType>Code</SubType>
     </Compile>
@@ -134,13 +137,25 @@
     <Compile Include="POUs\MainPRG\FB_CheckCoupleStatus.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\PolarStatusFB\FB_PolarizationState.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\RS232\BackgroundEL.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\RS232\FB_SerialCom.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\TiltSensor\FB_Simple_MovingAvg.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\TiltSensor\SAFE.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RecipeManager.TcRMO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Task_SAFE.TcTTO">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -159,7 +174,9 @@
     <Folder Include="POUs\CommonFB\MainFB" />
     <Folder Include="POUs\MainPRG" />
     <Folder Include="POUs\0.UserMode" />
+    <Folder Include="POUs\PolarStatusFB" />
     <Folder Include="POUs\RS232" />
+    <Folder Include="POUs\TiltSensor" />
     <Folder Include="VISUs" />
   </ItemGroup>
   <ItemGroup>

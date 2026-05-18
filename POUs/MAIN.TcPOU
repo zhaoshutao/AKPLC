@@ -449,10 +449,28 @@ VAR
 	
 	
 	MonitorMotorAndLEFunctionOn:BOOL:=TRUE;
+	
+		(*GetMotorTempture*)
+	MotorTemperature AT %I*:ARRAY[0..5] OF UINT;
+	MotorTemperature_LeftTop:LREAL;
+	MotorTemperature_RightTop:LREAL;
+	MotorTemperature_LeftBottom:LREAL;
+	MotorTemperature_RightBottom:LREAL;
+	MotorTemperature_PhaseUpper:LREAL;
+	MotorTemperature_PhaseLower:LREAL;
 
+	fbPolar    : FB_PolarizationState;
+    stPolarizationParam   : ST_PolarizationParam;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*加载Ricipe参数*)
+      <ST><![CDATA[(*MaintenanceMode*)
+IF MaintenanceMode THEN
+	MaintenanceModeLed:=TRUE;
+	RETURN;
+ELSE
+	MaintenanceModeLed:=FALSE;	
+END_IF
+(*加载Ricipe参数*)
 A_InitRecipeParameters();
 (*Restart TwinCAT*)
 IF Global_Variables.m_restartTC THEN
@@ -595,12 +613,17 @@ IF MonitorMotorAndLEFunctionOn AND SetMotorAxisPositionDone
 	A_MonitorMotorAndLE();
 END_IF
 (*A_CheckMaxVelocity*)
-A_CheckMaxVelocity();]]></ST>
+A_CheckMaxVelocity();
+(**)
+A_GetMotorTemperature();
+
+A_PolarStatus();]]></ST>
     </Implementation>
     <Folder Name="Axis" Id="{3eb3b5b7-a5d5-4d06-be7c-05e13125e510}" />
     <Folder Name="Check" Id="{010fabb8-e18f-4120-a985-758e6fd55448}" />
     <Folder Name="Driver" Id="{4350ce85-0586-4023-bc46-2cdffd7a9c8a}" />
     <Folder Name="LinearEncoder" Id="{059dd61e-7778-40dc-bb8d-282e70434fee}" />
+    <Folder Name="PolarStatus" Id="{96dd34fe-4e07-41f6-b5de-0b051764b39b}" />
     <Folder Name="Recipe" Id="{b4cf8559-847d-478e-99d6-23420c56f08c}" />
     <Folder Name="Safe" Id="{05d14914-bd26-4aa9-9f6b-59a79d201008}" />
     <Folder Name="TC" Id="{241a329f-2cca-4424-8363-173b04696ef4}" />
@@ -748,7 +771,7 @@ END_IF]]></ST>
     <Action Name="A_CheckLimitSwitch" Id="{1026ae85-58e3-4004-8dd3-becfab0085f9}" FolderPath="Check\">
       <Implementation>
         <ST><![CDATA[(*******1.´ÓIO»ñÈ¡ÏÞÎ»×´Ì¬******)
-(**)
+(*
 IF simulation THEN
 	(**)
 	LS_LeftTop_Far:=TRUE;
@@ -778,6 +801,8 @@ ELSE
 	LS_PhaseLower_Entrance:=el1808_D2[3];
 	LS_PhaseLower_Exit:=el1808_D2[4];
 END_IF
+
+*)
 (*
 	LS_LeftTop_Top:=TRUE;
 	LS_LeftTop_Bottom:=TRUE;
@@ -1075,6 +1100,7 @@ IF 	ABS(Velo_RightBottomMotor) > MaxVelocityGlobalVelocity*1.1/2 THEN
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
 END_IF
+(*
 IF 	ABS(Velo_PhaseUpperLin) > MaxVelocityGlobalVelocity*1.1/2 THEN
 	ErrorID:=7005;
 	Error:=TRUE;
@@ -1102,7 +1128,8 @@ IF 	ABS(Velo_PhaseLowerMotor) > MaxVelocityGlobalVelocity*1.1/2 THEN
 	ErrorDescription:='ABS(Velo_RighBottomMotor) > MaxVelocityGlobalVelocity*1.1/2';
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
-END_IF]]></ST>
+END_IF
+*)]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_GetDriverStatus" Id="{e05cf975-7b3e-4430-bb2e-a308f4391f1b}" FolderPath="Driver\">
@@ -9455,6 +9482,16 @@ END_CASE
         </NWL>
       </Implementation>
     </Action>
+    <Action Name="A_GetMotorTemperature" Id="{177f6aa7-fb59-4f66-a7a6-1b4260347e60}" FolderPath="Axis\">
+      <Implementation>
+        <ST><![CDATA[MotorTemperature_LeftTop:=UINT_TO_LREAL(MotorTemperature[0])/10;
+MotorTemperature_RightTop:=UINT_TO_LREAL(MotorTemperature[1])/10;
+MotorTemperature_LeftBottom:=UINT_TO_LREAL(MotorTemperature[2])/10;
+MotorTemperature_RightBottom:=UINT_TO_LREAL(MotorTemperature[3])/10;
+MotorTemperature_PhaseUpper:=UINT_TO_LREAL(MotorTemperature[4])/10;
+MotorTemperature_PhaseLower:=UINT_TO_LREAL(MotorTemperature[5])/10;]]></ST>
+      </Implementation>
+    </Action>
     <Action Name="A_GetTemperatureSensorsData" Id="{d73fb87c-9e06-4b36-8cf6-68d5032eab30}" FolderPath="Temperature\">
       <Implementation>
         <ST><![CDATA[//sensor_1
@@ -10190,6 +10227,7 @@ IF ABS(DeltaPos_RightBottom) > ThresholdDeltaPos_RightBottom THEN
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
 END_IF
+(*
 IF ABS(DeltaPos_PhaseUpper) > ThresholdDeltaPos_PhaseUpper THEN
 	ErrorID:=6005;
 	Error:=TRUE;
@@ -10204,7 +10242,7 @@ IF ABS(DeltaPos_PhaseLower) > ThresholdDeltaPos_PhaseLower THEN
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
 END_IF
-
+*)
 IF ABS(DeltaVelo_LeftTop) > ThresholdDeltaVelo_LeftTop THEN
 	ErrorID:=6007;
 	Error:=TRUE;
@@ -10233,6 +10271,7 @@ IF ABS(DeltaVelo_RightBottom) > ThresholdDeltaVelo_RightBottom THEN
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
 END_IF
+(*
 IF ABS(DeltaVelo_PhaseUpper) > ThresholdDeltaVelo_PhaseUpper THEN
 	ErrorID:=6011;
 	Error:=TRUE;
@@ -10247,7 +10286,7 @@ IF ABS(DeltaVelo_PhaseLower) > ThresholdDeltaVelo_PhaseLower THEN
 	FB_PlcEmergencyStop();
 	LED_Error:=TRUE;
 END_IF
-
+*)
 (*
 //
 //IF NotMoving ,Threshold is less
@@ -10327,6 +10366,26 @@ IF NOT moveStatusRightBottom THEN
 	END_IF
 END_IF
 *)]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PolarStatus" Id="{b051506f-50a1-4381-9f89-0ba3c08f64b3}" FolderPath="PolarStatus\">
+      <Implementation>
+        <ST><![CDATA[// 调用
+fbPolar(
+    Pos_PhaseUpper := Pos_PhaseUpperLin,
+    Pos_PhaseLower := Pos_PhaseLowerLin,
+    Upper_HM  := stPolarizationParam.Upper_HM,
+    Lower_HM  := stPolarizationParam.Lower_HM,
+    Upper_VM1 := stPolarizationParam.Upper_VM1,
+    Lower_VM1 := stPolarizationParam.Lower_VM1,
+    Upper_VM2 := stPolarizationParam.Upper_VM2,
+    Lower_VM2 := stPolarizationParam.Lower_VM2,
+    Upper_LC  := stPolarizationParam.Upper_LC,
+    Lower_LC  := stPolarizationParam.Lower_LC,
+    Upper_RC  := stPolarizationParam.Upper_RC,
+    Lower_RC  := stPolarizationParam.Lower_RC,
+    rTolerance := stPolarizationParam.Tolerance
+);]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_PosDiffDetectiion" Id="{e857c546-d367-4f19-9434-ed29c144eb6f}" FolderPath="Axis\">
@@ -12269,6 +12328,8 @@ END_CASE
       </Implementation>
     </Action>
     <LineIds Name="MAIN">
+      <LineId Id="4501" Count="5" />
+      <LineId Id="4500" Count="0" />
       <LineId Id="2412" Count="0" />
       <LineId Id="352" Count="0" />
       <LineId Id="2413" Count="8" />
@@ -12324,6 +12385,10 @@ END_CASE
       <LineId Id="4039" Count="0" />
       <LineId Id="4001" Count="2" />
       <LineId Id="3452" Count="0" />
+      <LineId Id="4499" Count="0" />
+      <LineId Id="4498" Count="0" />
+      <LineId Id="4508" Count="0" />
+      <LineId Id="4507" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_CheckHardwareEmergencyStopStatus">
       <LineId Id="2" Count="0" />
@@ -12389,6 +12454,8 @@ END_CASE
       <LineId Id="119" Count="2" />
       <LineId Id="118" Count="0" />
       <LineId Id="20" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="122" Count="0" />
       <LineId Id="111" Count="0" />
       <LineId Id="103" Count="6" />
       <LineId Id="102" Count="0" />
@@ -12446,8 +12513,10 @@ END_CASE
       <LineId Id="19" Count="0" />
       <LineId Id="34" Count="26" />
       <LineId Id="33" Count="0" />
+      <LineId Id="125" Count="0" />
       <LineId Id="98" Count="26" />
       <LineId Id="97" Count="0" />
+      <LineId Id="126" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_GetDriverStatus">
       <LineId Id="240" Count="24" />
@@ -12501,6 +12570,11 @@ END_CASE
       <LineId Id="433" Count="0" />
       <LineId Id="381" Count="9" />
       <LineId Id="162" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.A_GetMotorTemperature">
+      <LineId Id="1" Count="2" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="4" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_GetTemperatureSensorsData">
       <LineId Id="37" Count="0" />
@@ -12682,7 +12756,9 @@ END_CASE
       <LineId Id="24" Count="5" />
       <LineId Id="6" Count="0" />
       <LineId Id="30" Count="5" />
-      <LineId Id="146" Count="13" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="147" Count="12" />
       <LineId Id="7" Count="1" />
       <LineId Id="36" Count="5" />
       <LineId Id="9" Count="0" />
@@ -12691,7 +12767,9 @@ END_CASE
       <LineId Id="48" Count="5" />
       <LineId Id="11" Count="0" />
       <LineId Id="54" Count="5" />
-      <LineId Id="160" Count="13" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="161" Count="12" />
       <LineId Id="2" Count="0" />
       <LineId Id="145" Count="0" />
       <LineId Id="144" Count="0" />
@@ -12722,6 +12800,12 @@ END_CASE
       <LineId Id="62" Count="0" />
       <LineId Id="136" Count="0" />
       <LineId Id="60" Count="0" />
+    </LineIds>
+    <LineIds Name="MAIN.A_PolarStatus">
+      <LineId Id="15" Count="2" />
+      <LineId Id="44" Count="10" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="MAIN.A_PosDiffDetectiion">
       <LineId Id="0" Count="2" />

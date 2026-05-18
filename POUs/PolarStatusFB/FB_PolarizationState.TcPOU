@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <POU Name="FB_PolarizationState" Id="{ab112dd8-fee1-4d41-a68e-72ec09bc0161}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PolarizationState
+VAR_INPUT
+    Pos_PhaseUpper : LREAL;
+    Pos_PhaseLower : LREAL;
+	Upper_HM  : LREAL := 0.0;
+    Lower_HM  : LREAL := 0.0;
+    Upper_VM1 : LREAL := 42.8;
+    Lower_VM1 : LREAL := -42.8;
+    Upper_VM2 : LREAL := -42.8;
+    Lower_VM2 : LREAL := 42.8;
+    Upper_LC  : LREAL := 64.2;
+    Lower_LC  : LREAL := -21.4;
+    Upper_RC  : LREAL := -64.2;
+    Lower_RC  : LREAL := 21.4;
+	rTolerance : LREAL := 0.1;
+END_VAR
+
+VAR_OUTPUT
+    PolarState_Int    : INT;
+    PolarState_String : STRING(6);
+END_VAR
+
+VAR
+
+END_VAR
+
+VAR
+
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+    PolarState_Int    := -1;
+    PolarState_String := 'UnKnow';
+
+    IF ABS(Pos_PhaseUpperLin - Upper_HM) <= rTolerance
+    AND ABS(Pos_PhaseLowerLin - Lower_HM) <= rTolerance THEN
+        PolarState_Int    := 1;
+        PolarState_String := 'HM';
+        RETURN;
+    END_IF
+
+    IF (ABS(Pos_PhaseUpperLin - Upper_VM1) <= rTolerance AND ABS(Pos_PhaseLowerLin - Lower_VM1) <= rTolerance)
+    OR (ABS(Pos_PhaseUpperLin - Upper_VM2) <= rTolerance AND ABS(Pos_PhaseLowerLin - Lower_VM2) <= rTolerance) THEN
+        PolarState_Int    := 2;
+        PolarState_String := 'VM';
+        RETURN;
+    END_IF
+
+    IF ABS(Pos_PhaseUpperLin - Upper_LC) <= rTolerance
+    AND ABS(Pos_PhaseLowerLin - Lower_LC) <= rTolerance THEN
+        PolarState_Int    := 3;
+        PolarState_String := 'LC';
+        RETURN;
+    END_IF
+
+    IF ABS(Pos_PhaseUpperLin - Upper_RC) <= rTolerance
+    AND ABS(Pos_PhaseLowerLin - Lower_RC) <= rTolerance THEN
+        PolarState_Int    := 4;
+        PolarState_String := 'RC';
+        RETURN;
+    END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_PolarizationState">
+      <LineId Id="124" Count="31" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

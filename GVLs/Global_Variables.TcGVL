@@ -5,9 +5,12 @@
 VAR_GLOBAL
 (*IDControl Ready*)
 	IDControlReady:BOOL;
+(*Maintenance Mode*)
+	MaintenanceMode:BOOL;
+	MaintenanceModeLed:BOOL;
 (*RecipeDescription*)
-RecipeSavedDate:STRING;
-RecipeDescription:STRING;
+	RecipeSavedDate:STRING;
+	RecipeDescription:STRING;
 (*key Command*)
 	btn_Power:BOOL;
 	btn_PowerOn: BOOL;
@@ -76,6 +79,11 @@ btn_Reset:BOOL;
 	Threshold_BottomPos_Debug: LREAL:=4;
 	Threshold_LeftPos_Debug: LREAL:=4;
 	Threshold_RightPos_Debug: LREAL:=4;
+	//单轴目标位置和当前位置之差，阈值
+	Threshold_LeftTopPos_Debug: LREAL:=0.4;	
+	Threshold_RightTopPos_Debug: LREAL:=0.4;
+	Threshold_LeftBottomPos_Debug: LREAL:=0.4;
+	Threshold_RightBottomPos_Debug: LREAL:=0.4;
 (*Taper Mode Threshold*)
 	Range_TaperPos:LREAL:=5.01;
 	Range_TaperVelo:LREAL:=1.01;
@@ -116,7 +124,8 @@ btn_Reset:BOOL;
 	moveStatusPhaseUpperMotor: BOOL;
 	moveStatusPhaseLowerMotor: BOOL;
 	moveStatusAllAxisMotor: BOOL;
-	moveStatusAnyAxisMotor: BOOL;
+	moveStatusAnyAxisMotor: BOOL;	
+	moveStatusGap:BOOL;
 (*Compensation Value*)
 	M_Compensation:ARRAY[1..18] OF Struct_M_Compensation
 :=[
@@ -487,6 +496,12 @@ btn_Reset:BOOL;
 	min_UserTaperVelocityNew: LREAL:=0;
 	max_UserTaperVelocityNew: LREAL:=0;
 	inRange_UserTaperVelocityNew: BOOL;
+	
+		(*add Beamline taper 模式，入口和出口电机都运动，保持中心gap不变*)
+	//3种模式划分：
+	NormalGapMode:BOOL;
+	IDTaperMode:BOOL;
+	BLTaperMode:BOOL;
 	
 END_VAR
 

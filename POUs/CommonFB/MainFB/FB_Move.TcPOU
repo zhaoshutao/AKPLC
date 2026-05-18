@@ -184,77 +184,110 @@ END_IF]]></ST>
     <Action Name="A_BCGapMove" Id="{14a23b8d-1d11-4027-a881-ef621e956d3f}">
       <Implementation>
         <ST><![CDATA[IF BCGapMove THEN
-BCGapBusy:=TRUE;
-BCGapDone:=FALSE;
-fb_ton_BC(PT:=t#80s);(*2mm/s max spees,120mmÐÐ³Ì£¬60sÄÚ×ßÍê*)
-(*×îºóÔÙ¼ì²éÒ»±éñîºÏ£¬²¹³¥Ä£Ê½ÏÂ£¬²»ÄÜñîºÏ*)
-IF LeftTopLin.NcToPlc.CoupleState<>0 OR LeftBottomLin.NcToPlc.CoupleState<>0
-			OR RightTopLin.NcToPlc.CoupleState<>0 OR RightBottomLin.NcToPlc.CoupleState<>0 THEN
-			ErrorID:=1;
-			GapState:=-100;
-END_IF
-A_MoveMC();
-IF  LeftTopLin.Status.Moving AND RightTopLin.Status.Moving
-			 AND LeftBottomLin.Status.Moving AND RightBottomLin.Status.Moving THEN
-	GapMoving:=TRUE;
-ELSE
-	GapMoving:=FALSE;
-END_IF
-CASE BCGapState OF
-	0:
-		IF LeftTopLin.Status.Moving OR RightTopLin.Status.Moving
-			 OR LeftBottomLin.Status.Moving OR RightBottomLin.Status.Moving THEN	(*ÖáÕýÔÚÔËÐÐ£¬Ñ­»·¸Ã²½µÈ´ý*)
-			BCGapState:=88;
-		ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error OR
-				RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN	(*¼ì²éMC Error*)
-			ErrorID:=2;
-			BCGapState:=99;
-		(*ELSIF ABS(Pos_LeftTopLin-GapPosition/2)<0.002 AND  ABS(Pos_LeftBottomLin-GapPosition)<0.002 THEN	(*Ä¿±êÎ»ÖÃÓëµ±Ç°Î»ÖÃÒ»Ñù£¬²»¶¯*)
-			GapState:=88;*)
-		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
-			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
-			BCGapState:=1;
-		END_IF
-	1:
-		Top_MC_MoveAbsolute.Position:=BCLeftTopPosition;
-		Top_MC_MoveAbsolute.Velocity:=BCLeftTopVelocity;
-		Bottom_MC_MoveAbsolute.Position:=BCLeftBottomPosition;
-		Bottom_MC_MoveAbsolute.Velocity:=BCLeftBottomVelocity;
-		RightTopLin_MC_MoveAbsolute.Position:=BCRightTopPosition;
-		RightTopLin_MC_MoveAbsolute.Velocity:=BCRightTopVelocity;
-		RightBottomLin_MC_MoveAbsolute.Position:=BCRightBottomPosition;
-		RightBottomLin_MC_MoveAbsolute.Velocity:=BCRightBottomVelocity;
-		Top_MC_MoveAbsolute.Execute:=TRUE;
-		Bottom_MC_MoveAbsolute.Execute:=TRUE;
-		RightTopLin_MC_MoveAbsolute.Execute:=TRUE;
-		RightBottomLin_MC_MoveAbsolute.Execute:=TRUE;
-		fb_ton_BC.IN:=TRUE;
-		BCGapState:=2;
-	2:
-		IF NOT Top_MC_MoveAbsolute.Done OR NOT  Bottom_MC_MoveAbsolute.Done
-				OR NOT RightTopLin_MC_MoveAbsolute.Done OR NOT RightBottomLin_MC_MoveAbsolute.Done THEN		(*ÔË¶¯ÖÐ£¬¼ì²éDoneÐÅºÅ£¬Ã»ÓÐÔòÑ­»·*)
+	BCGapBusy:=TRUE;
+	BCGapDone:=FALSE;
+	fb_ton_BC(PT:=t#80s);(*2mm/s max spees,120mmÐÐ³Ì£¬60sÄÚ×ßÍê*)
+	(*×îºóÔÙ¼ì²éÒ»±éñîºÏ£¬²¹³¥Ä£Ê½ÏÂ£¬²»ÄÜñîºÏ*)
+	IF LeftTopLin.NcToPlc.CoupleState<>0 OR LeftBottomLin.NcToPlc.CoupleState<>0
+				OR RightTopLin.NcToPlc.CoupleState<>0 OR RightBottomLin.NcToPlc.CoupleState<>0 THEN
+				ErrorID:=1;
+				GapState:=-100;
+	END_IF
+	A_MoveMC();
+	IF  LeftTopLin.Status.Moving AND RightTopLin.Status.Moving
+				 AND LeftBottomLin.Status.Moving AND RightBottomLin.Status.Moving THEN
+		GapMoving:=TRUE;
+	ELSE
+		GapMoving:=FALSE;
+	END_IF
+	CASE BCGapState OF
+		0:
+			IF LeftTopLin.Status.Moving OR RightTopLin.Status.Moving
+				 OR LeftBottomLin.Status.Moving OR RightBottomLin.Status.Moving THEN	(*ÖáÕýÔÚÔËÐÐ£¬Ñ­»·¸Ã²½µÈ´ý*)
+				BCGapState:=88;
+			//ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error OR
+			//		RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN	(*¼ì²éMC Error*)
+			//	ErrorID:=2;
+			//	BCGapState:=99;
+			(*ELSIF ABS(Pos_LeftTopLin-GapPosition/2)<0.002 AND  ABS(Pos_LeftBottomLin-GapPosition)<0.002 THEN	(*Ä¿±êÎ»ÖÃÓëµ±Ç°Î»ÖÃÒ»Ñù£¬²»¶¯*)
+				GapState:=88;*)
+			ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
+				 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
+				BCGapState:=1;
+			END_IF
+		1:
+			Top_MC_MoveAbsolute.Position:=BCLeftTopPosition;
+			Top_MC_MoveAbsolute.Velocity:=BCLeftTopVelocity;
+			Bottom_MC_MoveAbsolute.Position:=BCLeftBottomPosition;
+			Bottom_MC_MoveAbsolute.Velocity:=BCLeftBottomVelocity;
+			RightTopLin_MC_MoveAbsolute.Position:=BCRightTopPosition;
+			RightTopLin_MC_MoveAbsolute.Velocity:=BCRightTopVelocity;
+			RightBottomLin_MC_MoveAbsolute.Position:=BCRightBottomPosition;
+			RightBottomLin_MC_MoveAbsolute.Velocity:=BCRightBottomVelocity;
+			Top_MC_MoveAbsolute.Execute:=TRUE;
+			Bottom_MC_MoveAbsolute.Execute:=TRUE;
+			RightTopLin_MC_MoveAbsolute.Execute:=TRUE;
+			RightBottomLin_MC_MoveAbsolute.Execute:=TRUE;
+			fb_ton_BC.IN:=TRUE;
 			BCGapState:=2;
-		ELSIF Top_MC_MoveAbsolute.Done  AND  Bottom_MC_MoveAbsolute.Done AND RightTopLin_MC_MoveAbsolute.Done AND RightBottomLin_MC_MoveAbsolute.Done THEN		(*ÔË¶¯Íê³É£¬×ªÏÂÒ»²½*)
-			BCGapState:=88;
-		END_IF
-		(*½ÓÊÕµ½stopÐÅºÅÊ±£¬reset×´Ì¬*)
-		IF BCGapReset THEN
-			BCGapState:=89;
-		END_IF
+		2:
+			IF NOT Top_MC_MoveAbsolute.Done OR NOT  Bottom_MC_MoveAbsolute.Done
+					OR NOT RightTopLin_MC_MoveAbsolute.Done OR NOT RightBottomLin_MC_MoveAbsolute.Done THEN		(*ÔË¶¯ÖÐ£¬¼ì²éDoneÐÅºÅ£¬Ã»ÓÐÔòÑ­»·*)
+				BCGapState:=2;
+			ELSIF Top_MC_MoveAbsolute.Done  AND  Bottom_MC_MoveAbsolute.Done AND RightTopLin_MC_MoveAbsolute.Done AND RightBottomLin_MC_MoveAbsolute.Done THEN		(*ÔË¶¯Íê³É£¬×ªÏÂÒ»²½*)
+				BCGapState:=88;
+			END_IF
+		88:
+			BCGapMove:=FALSE;
+			BCGapState:=0;
+			BCGapBusy:=FALSE;
+			BCGapDone:=TRUE;
+			Error:=FALSE;
+			ErrorID:=0;
+			Top_MC_MoveAbsolute.Execute:=FALSE;
+			Bottom_MC_MoveAbsolute.Execute:=FALSE;
+			RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
+			RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
+			fb_ton_BC.IN:=FALSE;
+		89:
+			BCGapMove:=FALSE;
+			BCGapState:=0;
+			BCGapBusy:=FALSE;
+			BCGapDone:=FALSE;
+			Error:=FALSE;
+			ErrorID:=0;
+			Top_MC_MoveAbsolute.Execute:=FALSE;
+			Bottom_MC_MoveAbsolute.Execute:=FALSE;
+			RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
+			RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
+			fb_ton_BC.IN:=FALSE;
+		99:
+			BCGapMove:=FALSE;
+			BCGapState:=99;
+			BCGapBusy:=FALSE;
+			BCGapDone:=FALSE;
+			Error:=TRUE;
+			Top_MC_MoveAbsolute.Execute:=FALSE;
+			Bottom_MC_MoveAbsolute.Execute:=FALSE;
+			RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
+			RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
+			fb_ton_BC.IN:=FALSE;
+		-100:
+			FB_PlcEmergencyStop();
+			BCGapMove:=FALSE;
+			BCGapState:=-100;
+			BCGapBusy:=FALSE;
+			BCGapDone:=FALSE;
+			Error:=TRUE;
+			Top_MC_MoveAbsolute.Execute:=FALSE;
+			Bottom_MC_MoveAbsolute.Execute:=FALSE;
+			RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
+			RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
+			fb_ton_BC.IN:=FALSE;
+	END_CASE
 
-	88:
-		BCGapMove:=FALSE;
-		BCGapState:=0;
-		BCGapBusy:=FALSE;
-		BCGapDone:=TRUE;
-		Error:=FALSE;
-		ErrorID:=0;
-		Top_MC_MoveAbsolute.Execute:=FALSE;
-		Bottom_MC_MoveAbsolute.Execute:=FALSE;
-		RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
-		RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
-		fb_ton_BC.IN:=FALSE;
-	89:
+	IF BCGapReset THEN
+		BCGapReset:=FALSE;
 		BCGapMove:=FALSE;
 		BCGapState:=0;
 		BCGapBusy:=FALSE;
@@ -266,30 +299,7 @@ CASE BCGapState OF
 		RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
 		RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
 		fb_ton_BC.IN:=FALSE;
-	99:
-		BCGapMove:=FALSE;
-		BCGapState:=99;
-		BCGapBusy:=FALSE;
-		BCGapDone:=FALSE;
-		Error:=TRUE;
-		Top_MC_MoveAbsolute.Execute:=FALSE;
-		Bottom_MC_MoveAbsolute.Execute:=FALSE;
-		RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
-		RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
-		fb_ton_BC.IN:=FALSE;
-	-100:
-		FB_PlcEmergencyStop();
-		BCGapMove:=FALSE;
-		BCGapState:=-100;
-		BCGapBusy:=FALSE;
-		BCGapDone:=FALSE;
-		Error:=TRUE;
-		Top_MC_MoveAbsolute.Execute:=FALSE;
-		Bottom_MC_MoveAbsolute.Execute:=FALSE;
-		RightTopLin_MC_MoveAbsolute.Execute:=FALSE;
-		RightBottomLin_MC_MoveAbsolute.Execute:=FALSE;
-		fb_ton_BC.IN:=FALSE;
-END_CASE
+	END_IF
 END_IF]]></ST>
       </Implementation>
     </Action>
@@ -311,10 +321,10 @@ CASE BCGapState_2 OF
 		IF LeftTopLin.Status.Moving OR RightTopLin.Status.Moving
 			 OR LeftBottomLin.Status.Moving OR RightBottomLin.Status.Moving THEN	(*ÖáÕýÔÚÔËÐÐ£¬Ñ­»·¸Ã²½µÈ´ý*)
 			BCGapState_2:=88;
-		ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error OR
-				RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN	(*¼ì²éMC Error*)
-			ErrorID:=2;
-			BCGapState_2:=99;
+		//ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error OR
+		//		RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN	(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	BCGapState_2:=99;
 		(*ELSIF ABS(Pos_LeftTopLin-GapPosition/2)<0.002 AND  ABS(Pos_LeftBottomLin-GapPosition)<0.002 THEN	(*Ä¿±êÎ»ÖÃÓëµ±Ç°Î»ÖÃÒ»Ñù£¬²»¶¯*)
 			GapState:=88;*)
 		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
@@ -412,9 +422,9 @@ CASE BottomState OF
 		IF LeftTopLin.Status.Moving OR RightTopLin.Status.Moving
 			 OR LeftBottomLin.Status.Moving OR RightBottomLin.Status.Moving THEN	(*ÖáÕýÔÚÔËÐÐ£¬Ñ­»·¸Ã²½µÈ´ý*)
 			TopState:=88;
-		ELSIF  Bottom_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			BottomState:=99;
+		//ELSIF  Bottom_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	BottomState:=99;
 		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
 			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			BottomState:=1;
@@ -509,9 +519,9 @@ CASE GapState OF
 		IF LeftTopLin.Status.Moving OR RightTopLin.Status.Moving
 			 OR LeftBottomLin.Status.Moving OR RightBottomLin.Status.Moving THEN	(*ÖáÕýÔÚÔËÐÐ£¬Ñ­»·¸Ã²½µÈ´ý*)
 			GapState:=88;
-		ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			GapState:=99;
+		//ELSIF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	GapState:=99;
 		ELSIF ABS(Pos_LeftTopLin-GapPosition/2)<0.002 AND  ABS(Pos_LeftBottomLin-GapPosition)<0.002 THEN	(*Ä¿±êÎ»ÖÃÓëµ±Ç°Î»ÖÃÒ»Ñù£¬²»¶¯*)
 			GapState:=88;
 		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
@@ -624,11 +634,11 @@ END_IF
 A_MoveMC();
 CASE LeftBottomState OF
 	0:
-		IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
-			OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			LeftBottomState:=99;
-		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
+		//IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
+		//	OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	LeftBottomState:=99;
+		IF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
 			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			LeftBottomState:=1;
 		END_IF
@@ -712,11 +722,11 @@ END_IF
 A_MoveMC();
 CASE LeftTopState OF
 	0:
-		IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
-			OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			LeftTopState:=99;
-		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
+		//IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
+		//	OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	LeftTopState:=99;
+		IF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
 			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			LeftTopState:=1;
 		END_IF
@@ -2903,10 +2913,10 @@ fb_ton_debug_6(PT:=T#10S);
 A_MoveMC();
 CASE PhaseLowerState OF
 	0:
-		IF PhaseLowerLin_MC_MoveAbsolute.Error THEN
-			ErrorID:=2;
-			PhaseLowerState:=99;
-		ELSIF PhaseLowerLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
+		//IF PhaseLowerLin_MC_MoveAbsolute.Error THEN
+		//	ErrorID:=2;
+		//	PhaseLowerState:=99;
+		IF PhaseLowerLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			PhaseLowerState:=1;
 		END_IF
 	1:
@@ -2973,10 +2983,10 @@ fb_ton_debug_5(PT:=T#10S);
 A_MoveMC();
 CASE PhaseUpperState OF
 	0:
-		IF PhaseUpperLin_MC_MoveAbsolute.Error THEN
-			ErrorID:=2;
-			PhaseUpperState:=99;
-		ELSIF PhaseUpperLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
+		//IF PhaseUpperLin_MC_MoveAbsolute.Error THEN
+		//	ErrorID:=2;
+		//	PhaseUpperState:=99;
+		IF PhaseUpperLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			PhaseUpperState:=1;
 		END_IF
 	1:
@@ -3049,11 +3059,11 @@ END_IF
 A_MoveMC();
 CASE RightBottomState OF
 	0:
-		IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
-			OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			RightBottomState:=99;
-		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
+		//IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
+		//	OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	RightBottomState:=99;
+		IF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
 			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			RightBottomState:=1;
 		END_IF
@@ -3137,11 +3147,11 @@ END_IF
 A_MoveMC();
 CASE RightTopState OF
 	0:
-		IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
-			OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			RightTopState:=99;
-		ELSIF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
+		//IF Top_MC_MoveAbsolute.Error OR Bottom_MC_MoveAbsolute.Error
+		//	OR RightTopLin_MC_MoveAbsolute.Error OR RightBottomLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	RightTopState:=99;
+		IF leftTopLin.Status.NotMoving AND  leftBottomLin.Status.NotMoving
 			 AND RightTopLin.Status.NotMoving AND RightBottomLin.Status.NotMoving THEN	(*Öá¶¼´¦ÓÚÍ£Ö¹×´Ì¬Ê±£¬×ªÏÂÒ»²½*)
 			RightTopState:=1;
 		END_IF
@@ -3330,10 +3340,10 @@ fb_ton1(PT:=t#80s);(*2mm/s max spees,120mmÐÐ³Ì£¬60sÄÚ×ßÍê*)
 A_MoveMC();
 CASE TopState OF
 	0:
-		IF Top_MC_MoveAbsolute.Error OR RightTopLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
-			ErrorID:=2;
-			TopState:=99;
-		END_IF
+		//IF Top_MC_MoveAbsolute.Error OR RightTopLin_MC_MoveAbsolute.Error THEN		(*¼ì²éMC Error*)
+		//	ErrorID:=2;
+		//	TopState:=99;
+		//END_IF
 		TopState:=1;
 	1:
 		Top_MC_MoveAbsolute.Position:=TopPosition;
@@ -3418,7 +3428,12 @@ END_IF
       <LineId Id="103" Count="2" />
       <LineId Id="107" Count="1" />
       <LineId Id="106" Count="0" />
-      <LineId Id="11" Count="90" />
+      <LineId Id="11" Count="35" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="53" Count="47" />
+      <LineId Id="110" Count="13" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="101" Count="0" />
     </LineIds>
     <LineIds Name="FB_Move.A_BCGapMove_2">
       <LineId Id="0" Count="101" />

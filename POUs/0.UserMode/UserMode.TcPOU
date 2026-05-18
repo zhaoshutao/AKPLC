@@ -9,12 +9,44 @@ VAR
 	UserGapVelocityNew:LREAL:=1;//target
 	UserGapPositionDisplay:LREAL;//current
 	UserGapVelocityDisplay:LREAL;//current
+(*ID taper mode*)
 	UserTaperPositionNew:LREAL:=0;//target
-	UserTaperVelocityNew:LREAL:=1;//target
+	UserTaperVelocityNew:LREAL:=0.02;//target
 	UserTaperPositionDisplay:LREAL;//current
+	UserTaperPositionDisplayBLSide:LREAL;//current BeamLine
+	UserTaperPositionActual:LREAL;//current
 	UserTaperVelocityDisplay:LREAL;//target
 	UserGapPositionDisplay_FromLeftTop:LREAL;
 	UserGapPositionDisplay_FromLeftBottom:LREAL;
+		//
+	UserRightGapPositionNew:LREAL;
+	UserRightGapVelocityNew:LREAL;
+	UserRightGapPositionDisplay:LREAL;
+	UserRightGapVelocityDisplay:LREAL;
+	UserRightGapPositionDisplay_FromRightTop:LREAL;
+	UserRightGapPositionDisplay_FromRightBottom:LREAL;
+(*BL taper mode*)
+	BLUserTaperPositionNew:LREAL:=0;//target
+	BLUserTaperVelocityNew:LREAL:=0.02;//target
+	BLUserTaperPositionDisplay:LREAL;//current
+	//BLUserTaperPositionDisplayBLSide:LREAL;//current BeamLine
+	BLUserTaperPositionActual:LREAL;//current
+	BLUserTaperVelocityDisplay:LREAL;//target
+	BLUserGapPositionDisplay_FromLeftTop:LREAL;
+	BLUserGapPositionDisplay_FromLeftBottom:LREAL;
+	//
+	BLUserLeftGapPositionNew:LREAL;
+	BLUserLeftGapVelocityNew:LREAL;
+	BLUserLeftGapPositionDisplay:LREAL;
+	BLUserLeftGapVelocityDisplay:LREAL;
+	BLUserLeftGapPositionDisplay_FromLeftTop:LREAL;
+	BLUserLeftGapPositionDisplay_FromLeftBottom:LREAL;
+	BLUserRightGapPositionNew:LREAL;
+	BLUserRightGapVelocityNew:LREAL;
+	BLUserRightGapPositionDisplay:LREAL;
+	BLUserRightGapVelocityDisplay:LREAL;
+	BLUserRightGapPositionDisplay_FromRightTop:LREAL;
+	BLUserRightGapPositionDisplay_FromRightBottom:LREAL;
 (*PhaseUpper Move*)
 	UserPhaseUpperPositionNew:LREAL:=0;//target
 	UserPhaseUpperVelocityNew:LREAL:=0.5;//target
@@ -24,12 +56,6 @@ VAR
 	UserPhaseLowerPositionDisplay:LREAL;//current
 	UserPhaseLowerVelocityDisplay:LREAL;//current
 	//
-	UserRightGapPositionNew:LREAL;
-	UserRightGapVelocityNew:LREAL;
-	UserRightGapPositionDisplay:LREAL;
-	UserRightGapVelocityDisplay:LREAL;
-	UserRightGapPositionDisplay_FromRightTop:LREAL;
-	UserRightGapPositionDisplay_FromRightBottom:LREAL;
 	(*Gap move&Stop*)
 	btn_UserGapMove:BOOL;
 	btn_UserGapStop:BOOL;
@@ -214,6 +240,14 @@ VAR
 	OneKeyToMaxGap_TON_Stop2Move_InTaperMode:TON;
 	OneKeyToMaxGap_TON_Power2Move:TON;
 	OneKeyToMaxGap_Done:BOOL;
+	
+		//BLTaper
+	CurrentTaperInit: LREAL;
+	L_HalfGirder:LREAL:=2500;
+	L_Center2Motor:LREAL:=1375;
+	//
+	trig_TaperOrNot: R_TRIG;
+	trig_BLTaperOrNot: R_TRIG;
 	
 END_VAR
 ]]></Declaration>
@@ -1083,7 +1117,7 @@ IF btn_UserPhaseLowerMove THEN
 	END_IF
 END_IF
 (*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
-IF GapPhase_ChainProtection_On AND UserGapPositionDisplay<GapPhase_ChainProtection_MaxGapValue AND btn_UserPhaseLowerMove THEN
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay-GapPhase_ChainProtection_MaxGapValue<-0.01 AND btn_UserPhaseLowerMove THEN
 		btn_UserPhaseLowerStop:=TRUE;
 		btn_UserPhaseLowerMove:=FALSE;
 		Error:=TRUE;
@@ -1262,7 +1296,7 @@ IF btn_UserPhaseUpperMove THEN
 	END_IF
 END_IF
 (*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Pase*)
-IF GapPhase_ChainProtection_On AND UserGapPositionDisplay<GapPhase_ChainProtection_MaxGapValue AND btn_UserPhaseUpperMove THEN
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay-GapPhase_ChainProtection_MaxGapValue<-0.01 AND btn_UserPhaseUpperMove THEN
 		btn_UserPhaseUpperStop:=TRUE;
 		btn_UserPhaseUpperMove:=FALSE;
 		Error:=TRUE;
@@ -1584,7 +1618,9 @@ IF InitCompensationDatasDone THEN
 					FB_Move.CoupleState:=st_Couple;			
 					FB_Move.PowerState:=st_Power;						
 			
-					IF btn_UserGapMove THEN
+					IF btn_UserGapMove THEN					
+						moveStatusGap:=TRUE;
+						FB_Move.BCGapReset:=TRUE;
 						IF NOT st_Power THEN
 							ErrorID:=1501;
 							Error:=TRUE;
@@ -1615,11 +1651,11 @@ IF InitCompensationDatasDone THEN
 							FB_Move.BCLeftBottomVelocity:=UserTaperVelocityNew;
 							FB_Move.BCRightBottomVelocity:=UserTaperVelocityNew;
 						END_IF
-							FB_Move.BCGapMove:=TRUE;
-							m_state:=1;
-							FB_Move();
+						m_state:=1;
+						FB_Move();
 					END_IF
 				1:
+					FB_Move.BCGapMove:=TRUE;
 					btn_UserGapMove:=FALSE;
 					FB_Move();
 					IF NOT FB_Move.BCGapDone THEN			(*ÔË¶¯Î´Íê³É£¬Ñ­»·*)
@@ -1629,6 +1665,7 @@ IF InitCompensationDatasDone THEN
 						m_state:=88;
 					END_IF
 				88:
+					moveStatusGap:=FALSE;
 					btn_UserGapMove:=FALSE;					(*×´Ì¬»Ö¸´*)
 					Led_Run:=FALSE;
 					m_state:=0;
@@ -1641,6 +1678,8 @@ IF InitCompensationDatasDone THEN
 					FB_Move.CoupleState:=st_Couple;			
 					FB_Move.PowerState:=st_Power;			
 					IF btn_UserGapMove THEN	
+						FB_Move.BCGapReset:=TRUE;					
+						moveStatusGap:=TRUE;
 						IF NOT st_Power THEN
 							ErrorID:=1501;
 							Error:=TRUE;
@@ -1713,13 +1752,13 @@ IF InitCompensationDatasDone THEN
 							FB_Move.BCRightBottomVelocity:=UserTaperVelocityNew;
 						END_IF	
 
-						FB_Move.BCGapMove:=TRUE;
 						FB_Move();
 						HysteresisMoving:=TRUE;		
 						n_state:=1;	
 					END_IF
 				1:
-					btn_UserGapMove:=FALSE;
+					btn_UserGapMove:=FALSE;	
+					FB_Move.BCGapMove:=TRUE;
 					FB_Move();
 					IF NOT FB_Move.BCGapDone THEN			(*还未运动到位置,运动过程中*)
 						Led_Run:=TRUE;
@@ -1768,7 +1807,8 @@ IF InitCompensationDatasDone THEN
 						FB_Move.BCGapMove_2:=FALSE;
 					END_IF
 					*)
-				88:
+				88:				
+					moveStatusGap:=FALSE;
 					btn_UserGapMove:=FALSE;					
 					Led_Run:=FALSE;
 					n_state:=0;
@@ -1780,39 +1820,48 @@ IF InitCompensationDatasDone THEN
 	//
 END_IF
 
-IF btn_UserGapStop OR btn_reset THEN
-	FB_Move.BCGapReset:=TRUE;							(*¸øÔË¶¯FB¸øÍ£Ö¹ÐÅºÅ£¬Ê¹FB_Move×´Ì¬»Ö¸´*)
-	FB_Move();											(*Æô¶¯FB_Move*)
-	btn_UserGapMove:=FALSE;								(*btn_GapMove:=FALSE*)
-	m_state:=0;	
-	n_state:=0;										(*m_state:=0;*)
-	HysteresisMoving:=FALSE;
-	CASE s_state OF
-			0:
-				FB_Stop.Mode:=5;							(*1£ºgapÄ£Ê½£»2£ºµ¥ÁºÄ£Ê½£»3£ºtaperÄ£Ê½£»4£ºDebugÄ£Ê½£»5£ºBCGapÄ£Ê½*)
-				FB_Stop.CoupleState:=st_Couple;			(*ñîºÏ×´Ì¬ÊäÈë*)
-				FB_Stop.PowerState:=st_Power;				(*µçÔ´×´Ì¬ÊäÈë*)
-				FB_Stop.BCGapStop:=TRUE;				(*Execute TRUE*)
-				FB_Stop();								(*Æô¶¯FB*)
-				s_state:=1;
-			1:
-				FB_Stop();
-				IF NOT FB_Stop.BCGapDone THEN			(*Í£Ö¹Î´Íê³É£¬Ñ­»·*)
-					s_state:=1;
-				ELSE									(*Í£Ö¹Íê³É£¬ÏÂÒ»²½*)
-					s_state:=88;
-				END_IF
-			88:
-				btn_UserGapStop:=FALSE;						(*»Ö¸´×´Ì¬*)
-				FB_Move.BCGapReset:=FALSE;
-				btn_reset:=FALSE;
-				s_state:=0;
-		END_CASE
-END_IF
+//
+//STOP
+//
+CASE s_state OF
+	0:
+		IF btn_UserGapStop OR btn_Reset THEN					
+			moveStatusGap:=FALSE;
+			m_state:=0;	
+			n_state:=0;	
+			HysteresisMoving:=FALSE;
+					
+			FB_Stop.Mode:=5;	
+			FB_Stop.CoupleState:=st_Couple;	
+			FB_Stop.PowerState:=st_Power;
+			FB_Stop.BCGapStop:=TRUE;
+			FB_Stop();	
+			s_state:=1;
+		END_IF
+	1:
+		btn_UserGapStop:=FALSE;	
+		FB_Stop();
+		IF NOT FB_Stop.BCGapDone THEN
+			s_state:=1;
+		ELSE
+			s_state:=88;
+		END_IF
+	88:
+		FB_Move.BCGapReset:=FALSE;
+		btn_reset:=FALSE;
+		s_state:=0;
+END_CASE
 
 (*触发限位开关后，相当于点击了Stop按钮*)
 FTrig_ReachLS(CLK:=Unreach_LS_Far AND Unreach_LS_Near);
 IF FTrig_ReachLS.Q THEN
+	btn_UserGapStop:=TRUE;
+END_IF
+(*触发限位后，如果继续向前运动，点击move，则相当于点击stop，用于恢复move的状态位*)
+IF NOT Unreach_LS_Far AND btn_UserGapMove AND UserGapPositionNew >= UserGapPositionDisplay THEN
+	btn_UserGapStop:=TRUE;
+END_IF
+IF NOT Unreach_LS_Near AND btn_UserGapMove AND UserGapPositionNew <= UserGapPositionDisplay THEN
 	btn_UserGapStop:=TRUE;
 END_IF]]></ST>
       </Implementation>
@@ -2288,8 +2337,31 @@ END_IF
     </LineIds>
     <LineIds Name="UserMode.A_RegularMotion">
       <LineId Id="342" Count="3" />
-      <LineId Id="369" Count="270" />
+      <LineId Id="369" Count="40" />
+      <LineId Id="646" Count="1" />
+      <LineId Id="410" Count="30" />
+      <LineId Id="442" Count="2" />
+      <LineId Id="648" Count="1" />
+      <LineId Id="445" Count="0" />
+      <LineId Id="447" Count="7" />
+      <LineId Id="642" Count="0" />
+      <LineId Id="455" Count="10" />
+      <LineId Id="650" Count="1" />
+      <LineId Id="466" Count="71" />
+      <LineId Id="539" Count="4" />
+      <LineId Id="652" Count="1" />
+      <LineId Id="544" Count="0" />
+      <LineId Id="546" Count="48" />
+      <LineId Id="644" Count="0" />
+      <LineId Id="595" Count="10" />
+      <LineId Id="654" Count="29" />
+      <LineId Id="634" Count="5" />
       <LineId Id="199" Count="0" />
+      <LineId Id="685" Count="0" />
+      <LineId Id="684" Count="0" />
+      <LineId Id="686" Count="1" />
+      <LineId Id="689" Count="1" />
+      <LineId Id="688" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_SpectroscopyScanningMotion">
       <LineId Id="322" Count="179" />

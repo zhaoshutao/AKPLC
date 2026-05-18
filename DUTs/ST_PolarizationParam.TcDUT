@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+  <DUT Name="ST_PolarizationParam" Id="{de295f9c-899d-4566-85a0-67afaf1d7395}">
+    <Declaration><![CDATA[TYPE ST_PolarizationParam:
+STRUCT
+    // HM 水平偏振
+    Upper_HM  : LREAL := 0.0;
+    Lower_HM  : LREAL := 0.0;
+
+    // VM 垂直偏振 (两种情况)
+    Upper_VM1 : LREAL := 42.8;
+    Lower_VM1 : LREAL := -42.8;
+    Upper_VM2 : LREAL := -42.8;
+    Lower_VM2 : LREAL := 42.8;
+
+    // LC 左旋圆偏振
+    Upper_LC  : LREAL := 64.2;
+    Lower_LC  : LREAL := -21.4;
+
+    // RC 右旋圆偏振
+    Upper_RC  : LREAL := -64.2;
+    Lower_RC  : LREAL := 21.4;
+
+    // 容差
+    Tolerance : LREAL := 2.0;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
