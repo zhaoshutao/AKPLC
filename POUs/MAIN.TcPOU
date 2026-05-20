@@ -771,7 +771,8 @@ END_IF]]></ST>
     <Action Name="A_CheckLimitSwitch" Id="{1026ae85-58e3-4004-8dd3-becfab0085f9}" FolderPath="Check\">
       <Implementation>
         <ST><![CDATA[(*******1.´ÓIO»ñÈ¡ÏÞÎ»×´Ì¬******)
-(*
+(**)
+
 IF simulation THEN
 	(**)
 	LS_LeftTop_Far:=TRUE;
@@ -802,7 +803,7 @@ ELSE
 	LS_PhaseLower_Exit:=el1808_D2[4];
 END_IF
 
-*)
+
 (*
 	LS_LeftTop_Top:=TRUE;
 	LS_LeftTop_Bottom:=TRUE;
@@ -12446,6 +12447,7 @@ END_CASE
     <LineIds Name="MAIN.A_CheckLimitSwitch">
       <LineId Id="0" Count="0" />
       <LineId Id="110" Count="0" />
+      <LineId Id="124" Count="0" />
       <LineId Id="1" Count="9" />
       <LineId Id="115" Count="2" />
       <LineId Id="114" Count="0" />
