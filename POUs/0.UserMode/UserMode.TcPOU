@@ -249,6 +249,91 @@ VAR
 	trig_TaperOrNot: R_TRIG;
 	trig_BLTaperOrNot: R_TRIG;
 	
+	//
+	//零位特殊走法
+	//
+	(*Upper*)
+    // 零位特殊走法总开关。TRUE 启用；FALSE 关闭，关闭后直接按原 m/n 正常逻辑运行。
+    EnableZeroPre_PhaseUpper : BOOL := TRUE;
+
+    // 判断“当前位置在零附近”的范围。例如当前位置绝对值 <= 0.01mm 认为在零附近。
+    ZeroNearThreshold_PhaseUpper : LREAL := 0.3;
+
+    // 原来的 +/-1mm 边界，做成变量，后续可以改成 +/-0.5mm、+/-2mm 等。
+    ZeroBoundary_PhaseUpper : LREAL := 1.5;
+
+    // 零位附近特殊慢速，原来的 0.1mm/s，做成变量。
+    ZeroSlowVelocity_PhaseUpper : LREAL := 0.1;
+
+    // TRUE 表示当前正在执行零位预走状态机，此时屏蔽原 m/n 正常逻辑。
+    ZeroPreMoving_PhaseUpper : BOOL := FALSE;
+
+    // TRUE 表示本次 Move 的零位预走已经完成，下一步允许进入原 m/n 正常逻辑；正常完成或 Stop 时必须清 FALSE。
+    ZeroPreDone_PhaseUpper : BOOL := FALSE;
+
+    // TRUE 表示目标就在 +/-ZeroBoundary_PhaseUpper 内，此时只需要慢速直接走到目标，不再进入原 m/n 正常逻辑。
+    ZeroDirectMove_PhaseUpper : BOOL := FALSE;
+
+    // 零位预走专用状态。
+    z_state_PhaseUpper : INT := 0;
+
+    // 零位预走第一段目标：目标超过边界时为 +ZeroBoundary/-ZeroBoundary；目标在边界内时为最终目标。
+    ZeroPreTarget_PhaseUpper : LREAL := 0.0;
+
+    // 锁存本次 Move 的最终目标，避免零位慢速段期间用户改输入导致最终目标漂移。
+    ZeroFinalTarget_PhaseUpper : LREAL := 0.0;
+
+    // 锁存本次 Move 的用户速度，零位预走之后原 m/n 逻辑使用这个速度。
+    ZeroFinalVelocity_PhaseUpper : LREAL := 0.0;
+
+    // 原 m/n 正常逻辑当前使用的目标；零位预走后用 ZeroFinalTarget_PhaseUpper，否则用 UserPhaseUpperPositionNew。
+    ActiveTarget_PhaseUpper : LREAL := 0.0;
+
+    // 原 m/n 正常逻辑当前使用的速度；零位预走后用 ZeroFinalVelocity_PhaseUpper，否则用 UserPhaseUpperVelocityNew。
+    ActiveVelocity_PhaseUpper : LREAL := 0.0;
+	
+	(*Lower*)
+	
+    // 零位特殊走法总开关。TRUE 启用；FALSE 关闭，关闭后直接按原 m/n 正常逻辑运行。
+    EnableZeroPre_PhaseLower : BOOL := TRUE;
+
+    // 判断“当前位置在零附近”的范围。例如当前位置绝对值 <= 0.01mm 认为在零附近。
+    ZeroNearThreshold_PhaseLower : LREAL := 0.3;
+
+    // 原来的 +/-1mm 边界，做成变量，后续可以改成 +/-0.5mm、+/-2mm 等。
+    ZeroBoundary_PhaseLower : LREAL := 1.5;
+
+    // 零位附近特殊慢速，原来的 0.1mm/s，做成变量。
+    ZeroSlowVelocity_PhaseLower : LREAL := 0.1;
+
+    // TRUE 表示当前正在执行零位预走状态机，此时屏蔽原 m/n 正常逻辑。
+    ZeroPreMoving_PhaseLower : BOOL := FALSE;
+
+    // TRUE 表示本次 Move 的零位预走已经完成，下一步允许进入原 m/n 正常逻辑；正常完成或 Stop 时必须清 FALSE。
+    ZeroPreDone_PhaseLower : BOOL := FALSE;
+
+    // TRUE 表示目标就在 +/-ZeroBoundary_PhaseLower 内，此时只需要慢速直接走到目标，不再进入原 m/n 正常逻辑。
+    ZeroDirectMove_PhaseLower : BOOL := FALSE;
+
+    // 零位预走专用状态。
+    z_state_PhaseLower : INT := 0;
+
+    // 零位预走第一段目标：目标超过边界时为 +ZeroBoundary/-ZeroBoundary；目标在边界内时为最终目标。
+    ZeroPreTarget_PhaseLower : LREAL := 0.0;
+
+    // 锁存本次 Move 的最终目标，避免零位慢速段期间用户改输入导致最终目标漂移。
+    ZeroFinalTarget_PhaseLower : LREAL := 0.0;
+
+    // 锁存本次 Move 的用户速度，零位预走之后原 m/n 逻辑使用这个速度。
+    ZeroFinalVelocity_PhaseLower : LREAL := 0.0;
+
+    // 原 m/n 正常逻辑当前使用的目标；零位预走后用 ZeroFinalTarget_PhaseLower，否则用 UserPhaseLowerPositionNew。
+    ActiveTarget_PhaseLower : LREAL := 0.0;
+
+    // 原 m/n 正常逻辑当前使用的速度；零位预走后用 ZeroFinalVelocity_PhaseLower，否则用 UserPhaseLowerVelocityNew。
+    ActiveVelocity_PhaseLower : LREAL := 0.0;
+ 
+	
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -1087,6 +1172,398 @@ END_IF]]></ST>
     </Action>
     <Action Name="A_PhaseLowerMotion" Id="{f5505abe-8b40-4ad3-855a-7ffc19481ca9}">
       <Implementation>
+        <ST><![CDATA[IF btn_UserPhaseLowerMove THEN
+	IF NOT inRange_UserPhaseLowerPositionNew THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=812;
+		ErrorDescription:='target PhaseLower position out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseLowerStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';	
+	END_IF
+	IF NOT inRange_UserPhaseLowerVelocityNew THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=813;
+		ErrorDescription:='target PhaseLower velocity out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseLowerStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';
+	END_IF
+END_IF
+
+(*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Phase*)
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay-GapPhase_ChainProtection_MaxGapValue<-0.01 AND btn_UserPhaseLowerMove THEN
+		btn_UserPhaseLowerStop:=TRUE;
+		btn_UserPhaseLowerMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=814;
+		ErrorDescription:='Please Move Gap to MaxGapValue first before move Phase';
+		RETURN;
+END_IF
+
+(*Move*)
+IF InitPowerDone THEN
+	(*
+	零位特殊走法入口。
+
+	触发条件：
+	1. 用户按下 PhaseLower Move；
+	2. 当前没有执行过本次零位预走；
+	3. 当前没有正在执行零位预走；
+	4. 原 m/n 状态机都在空闲状态；
+	5. 当前位置在零附近。
+
+	重要说明：
+	这里不提前判断正向/负向是否要走回程差。
+	零位预走完成后，会重新进入原来的 m/n 判断。
+	因此目标为负方向，例如 -10mm 时，流程是：
+	0附近 -> 以慢速到 -ZeroBoundary -> 再进入原 n_state 回程差逻辑。
+	*)
+	IF btn_UserPhaseLowerMove
+		AND EnableZeroPre_PhaseLower
+		AND NOT ZeroPreDone_PhaseLower
+		AND NOT ZeroPreMoving_PhaseLower
+		AND m_state_PhaseLower=0
+		AND n_state_PhaseLower=0
+		AND ABS(Pos_PhaseLowerLin)<=ZeroNearThreshold_PhaseLower THEN
+
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
+
+		(*锁存本次用户目标和速度，避免零位慢速段期间 HMI 输入变化影响本次运动。*)
+		ZeroFinalTarget_PhaseLower:=UserPhaseLowerPositionNew;
+		ZeroFinalVelocity_PhaseLower:=UserPhaseLowerVelocityNew;
+
+		(*
+		如果目标在 +/-ZeroBoundary_PhaseLower 内：
+		直接以 ZeroSlowVelocity_PhaseLower 走到最终目标，本次运动结束。
+
+		如果目标超过边界：
+		先以 ZeroSlowVelocity_PhaseLower 走到 +ZeroBoundary 或 -ZeroBoundary。
+		走完后再进入原 m/n 正常逻辑，保留回程差判断。
+		*)
+		IF ABS(ZeroFinalTarget_PhaseLower)<=ZeroBoundary_PhaseLower THEN
+			ZeroPreTarget_PhaseLower:=ZeroFinalTarget_PhaseLower;
+			ZeroDirectMove_PhaseLower:=TRUE;
+		ELSE
+			IF ZeroFinalTarget_PhaseLower>ZeroBoundary_PhaseLower THEN
+				ZeroPreTarget_PhaseLower:=ZeroBoundary_PhaseLower;
+			ELSE
+				ZeroPreTarget_PhaseLower:=-ZeroBoundary_PhaseLower;
+			END_IF
+			ZeroDirectMove_PhaseLower:=FALSE;
+		END_IF
+
+		ZeroPreMoving_PhaseLower:=TRUE;
+		z_state_PhaseLower:=10;
+	END_IF
+
+	IF ZeroPreMoving_PhaseLower THEN
+		CASE z_state_PhaseLower OF
+			10:
+				(*
+				零位预走发命令。
+				这里的目标一定是：
+				1. 边界内目标：最终目标；
+				2. 边界外目标：+ZeroBoundary 或 -ZeroBoundary。
+				速度固定使用 ZeroSlowVelocity_PhaseLower。
+				*)
+				FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+				FB_Move_PhaseLower.CoupleState:=st_Couple;			
+				FB_Move_PhaseLower.PowerState:=st_Power;			
+				FB_Move_PhaseLower.PhaseLowerPosition:=ZeroPreTarget_PhaseLower;
+				FB_Move_PhaseLower.PhaseLowerVelocity:=ZeroSlowVelocity_PhaseLower;
+				FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+				btn_UserPhaseLowerMove:=FALSE;
+				Led_Run:=TRUE;
+				FB_Move_PhaseLower();
+				z_state_PhaseLower:=11;
+
+			11:
+				(*等待零位预走到位。*)
+				btn_UserPhaseLowerMove:=FALSE;
+				FB_Move_PhaseLower();
+				IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN
+					Led_Run:=TRUE;
+					z_state_PhaseLower:=11;
+				ELSE
+					(*
+					到位后先撤掉 Move 信号。
+					下一拍再决定是结束，还是进入原 m/n 正常逻辑。
+					这样和原 n_state 两段运动的处理方式一致：两段之间给 FB 一个 Move=FALSE 的间隔。
+					*)
+					FB_Move_PhaseLower.PhaseLowerMove:=FALSE;
+					FB_Move_PhaseLower();
+					z_state_PhaseLower:=12;
+				END_IF
+
+			12:
+				(*
+				零位预走完成后的分流。
+
+				ZeroDirectMove_PhaseLower=TRUE：
+					目标本来就在 +/-ZeroBoundary 内，慢速走到目标后本次运动直接结束。
+
+				ZeroDirectMove_PhaseLower=FALSE：
+					目标超过边界，只完成了“慢速离开零位”。
+					此时设置 ZeroPreDone=TRUE，并重新置 btn_UserPhaseLowerMove=TRUE。
+					下一扫描周期会跳过零位预走入口，进入原 m/n 正常逻辑。
+				*)
+				FB_Move_PhaseLower.PhaseLowerMove:=FALSE;
+				FB_Move_PhaseLower.PhaseLowerReset:=FALSE;
+				FB_Move_PhaseLower();
+
+				IF ZeroDirectMove_PhaseLower THEN
+					z_state_PhaseLower:=88;
+				ELSE
+					ZeroPreMoving_PhaseLower:=FALSE;
+					ZeroPreDone_PhaseLower:=TRUE;
+					btn_UserPhaseLowerMove:=TRUE;
+					Led_Run:=FALSE;
+					z_state_PhaseLower:=0;
+				END_IF
+
+			88:
+				(*零位直达目标的收尾。*)
+				btn_UserPhaseLowerMove:=FALSE;
+				FB_Move_PhaseLower.PhaseLowerMove:=FALSE;
+				FB_Move_PhaseLower.PhaseLowerReset:=FALSE;
+				Led_Run:=FALSE;
+				z_state_PhaseLower:=0;
+				ZeroPreMoving_PhaseLower:=FALSE;
+				ZeroPreDone_PhaseLower:=FALSE;
+				ZeroDirectMove_PhaseLower:=FALSE;
+		END_CASE
+
+	ELSE
+		(*
+		原 m/n 正常逻辑。
+
+		重要说明：
+		如果刚执行完零位预走，ZeroPreDone_PhaseLower=TRUE，
+		这里使用锁存的 ZeroFinalTarget/ZeroFinalVelocity。
+		否则仍使用 HMI 当前给定的 UserPhaseLowerPositionNew/UserPhaseLowerVelocityNew。
+		*)
+		IF ZeroPreDone_PhaseLower THEN
+			ActiveTarget_PhaseLower:=ZeroFinalTarget_PhaseLower;
+			ActiveVelocity_PhaseLower:=ZeroFinalVelocity_PhaseLower;
+		ELSE
+			ActiveTarget_PhaseLower:=UserPhaseLowerPositionNew;
+			ActiveVelocity_PhaseLower:=UserPhaseLowerVelocityNew;
+		END_IF
+
+		(*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
+		//只在m=和n=0的时候判断，否则会出现一些BUG，比如往大间隙开时，运动到位后m不能回到0.
+		IF m_state_PhaseLower=0 AND n_state_PhaseLower=0 THEN
+			IF ActiveTarget_PhaseLower-Pos_PhaseLowerLin<-LEDriftErrorThreshold_PhaseLower THEN
+					TargetPosLessThanCurrentPos_PhaseLower:=TRUE;
+			ELSE
+					TargetPosLessThanCurrentPos_PhaseLower:=FALSE;
+			END_IF
+		END_IF
+
+		(*目标位置大于当前位置，直接走到目标位置，不需要先走到考虑回程误差的临时位置。*)
+		IF NOT TargetPosLessThanCurrentPos_PhaseLower AND NOT HysteresisMoving_PhaseLower THEN
+			CASE m_state_PhaseLower OF
+				0:
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;	
+					IF btn_UserPhaseLowerMove THEN						
+						IF NOT st_Power THEN
+							ErrorID:=1501;
+							Error:=TRUE;
+							ErrorDescription:='Plz PowerOn Frist';
+							LED_Error:=TRUE;
+							RETURN;
+						ELSE
+							ErrorID:=0;
+							Error:=FALSE;
+							ErrorDescription:='';
+							LED_Error:=FALSE;
+						END_IF
+						//目标速度位置赋值
+						FB_Move_PhaseLower.PhaseLowerPosition:=ActiveTarget_PhaseLower;
+						FB_Move_PhaseLower.PhaseLowerVelocity:=ActiveVelocity_PhaseLower;		
+						//Move
+						FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+						m_state_PhaseLower:=1;
+						FB_Move_PhaseLower();
+					END_IF
+
+				1:
+					btn_UserPhaseLowerMove:=FALSE;
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*运动未完成，循环等待*)
+						Led_Run:=TRUE;
+						m_state_PhaseLower:=1;
+					ELSE									(*运动完成，进入收尾*)
+						m_state_PhaseLower:=88;
+					END_IF
+
+				88:
+					btn_UserPhaseLowerMove:=FALSE;					(*状态恢复*)
+					Led_Run:=FALSE;
+					m_state_PhaseLower:=0;
+					ZeroPreDone_PhaseLower:=FALSE;
+					ZeroPreMoving_PhaseLower:=FALSE;
+					ZeroDirectMove_PhaseLower:=FALSE;
+					z_state_PhaseLower:=0;
+			END_CASE
+
+		(*目标位置小于当前位置，保留原回程差逻辑：先走到临时位置，再走到最终位置。*)
+		ELSE
+			CASE n_state_PhaseLower OF
+				0:
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode;5:userMode_2
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;			
+					IF btn_UserPhaseLowerMove THEN
+						IF NOT st_Power THEN
+							ErrorID:=1501;
+							Error:=TRUE;
+							ErrorDescription:='Plz PowerOn Frist';
+							LED_Error:=TRUE;
+							RETURN;
+						ELSE
+							ErrorID:=0;
+							Error:=FALSE;
+							ErrorDescription:='';
+							LED_Error:=FALSE;
+						END_IF
+
+						IF TargetPosLessThanCurrentPos_PhaseLower THEN			
+							FB_Move_PhaseLower.PhaseLowerPosition:=ActiveTarget_PhaseLower-HysteresisError_PhaseLower;
+						ELSE
+							FB_Move_PhaseLower.PhaseLowerPosition:=ActiveTarget_PhaseLower;	
+						END_IF				
+
+						(*
+						锁定最终目标。
+						原程序这里锁 UserPhaseLowerPositionNewTemp，是为了避免运动过程中目标输入变化。
+						这里改为锁 ActiveTarget_PhaseLower：
+						- 普通运动时 ActiveTarget=UserPhaseLowerPositionNew；
+						- 零位预走后 ActiveTarget=ZeroFinalTarget_PhaseLower。
+						*)
+						UserPhaseLowerPositionNewTemp:=ActiveTarget_PhaseLower;
+						FB_Move_PhaseLower.PhaseLowerVelocity:=ActiveVelocity_PhaseLower;
+						
+						FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+						FB_Move_PhaseLower();
+						HysteresisMoving_PhaseLower:=TRUE;
+						n_state_PhaseLower:=1;
+					END_IF
+
+				1:
+					btn_UserPhaseLowerMove:=FALSE;
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*还未运动到临时位置，运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseLower:=1;
+					ELSE									
+						n_state_PhaseLower:=2;							(*转到下一步，运动到最终位置*)
+						FB_Move_PhaseLower.PhaseLowerMove:=FALSE;
+					END_IF
+
+				2:
+					FB_Move_PhaseLower.PhaseLowerReset:=FALSE;
+					FB_Move_PhaseLower.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseLower.CoupleState:=st_Couple;			
+					FB_Move_PhaseLower.PowerState:=st_Power;			
+					FB_Move_PhaseLower.PhaseLowerMove:=TRUE;
+					//直接走到最终目标。最终目标已在 n_state=0 中锁存到 UserPhaseLowerPositionNewTemp。
+					FB_Move_PhaseLower.PhaseLowerPosition:=UserPhaseLowerPositionNewTemp;	
+					FB_Move_PhaseLower.PhaseLowerVelocity:=ActiveVelocity_PhaseLower;
+					FB_Move_PhaseLower();							
+					n_state_PhaseLower:=3;
+
+				3:
+					FB_Move_PhaseLower();
+					IF NOT FB_Move_PhaseLower.PhaseLowerDone THEN			(*还未运动到最终位置，运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseLower:=3;
+					ELSE									
+						n_state_PhaseLower:=88;							(*运动到了最终位置*)
+					END_IF
+
+				88:
+					btn_UserPhaseLowerMove:=FALSE;					
+					Led_Run:=FALSE;
+					n_state_PhaseLower:=0;
+					HysteresisMoving_PhaseLower:=FALSE;
+					ZeroPreDone_PhaseLower:=FALSE;
+					ZeroPreMoving_PhaseLower:=FALSE;
+					ZeroDirectMove_PhaseLower:=FALSE;
+					z_state_PhaseLower:=0;
+			END_CASE
+		END_IF
+	END_IF
+END_IF
+
+IF btn_UserPhaseLowerStop THEN
+	FB_Move_PhaseLower.PhaseLowerReset:=TRUE;							(*给运动FB停止/复位信号，使FB_Move状态恢复*)
+	FB_Move_PhaseLower();											(*启动FB_Move*)
+	btn_UserPhaseLowerMove:=FALSE;
+	m_state_PhaseLower:=0;	
+	n_state_PhaseLower:=0;
+
+	(*Stop 时必须同时清零位预走相关状态，避免停止后残留在特殊流程中。*)
+	z_state_PhaseLower:=0;
+	ZeroPreMoving_PhaseLower:=FALSE;
+	ZeroPreDone_PhaseLower:=FALSE;
+	ZeroDirectMove_PhaseLower:=FALSE;
+
+	CASE s_state_PhaseLower OF
+			0:
+				FB_Stop_PhaseLower.Mode:=4;							(*1:gap模式; 2:单梁模式; 3:taper模式; 4:Debug模式; 5:BCGap模式*)
+				FB_Stop_PhaseLower.CoupleState:=st_Couple;			(*耦合状态输入*)
+				FB_Stop_PhaseLower.PowerState:=st_Power;				(*电源状态输入*)
+				FB_Stop_PhaseLower.PhaseLowerStop:=TRUE;				(*Execute TRUE*)
+				FB_Stop_PhaseLower();								(*启动FB*)
+				s_state_PhaseLower:=1;
+			1:
+				FB_Stop_PhaseLower();
+				IF NOT FB_Stop_PhaseLower.PhaseLowerDone THEN			(*停止未完成，循环*)
+					s_state_PhaseLower:=1;
+				ELSE									(*停止完成，下一步*)
+					s_state_PhaseLower:=88;
+				END_IF
+			88:
+				btn_UserPhaseLowerStop:=FALSE;						(*恢复状态*)
+				FB_Move_PhaseLower.PhaseLowerReset:=FALSE;				(*运行FB*)
+				s_state_PhaseLower:=0;
+		END_CASE
+END_IF
+
+(*触发限位开关后，相当于点击了Stop按钮*)
+FTrig_ReachLS_PhaseLower(CLK:=LS_PhaseLower_Entrance AND LS_PhaseLower_Exit);
+IF FTrig_ReachLS_PhaseLower.Q THEN
+	btn_UserPhaseLowerStop:=TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PhaseLowerMotion_1" Id="{69502db9-e08c-4762-acc8-458c4f879d94}">
+      <Implementation>
         <ST><![CDATA[(*输入保护*)
 IF btn_UserPhaseLowerMove THEN
 	IF NOT inRange_UserPhaseLowerPositionNew THEN
@@ -1265,6 +1742,396 @@ END_IF]]></ST>
       </Implementation>
     </Action>
     <Action Name="A_PhaseUpperMotion" Id="{b87fb803-245f-4181-b0eb-701ba9dcf58a}">
+      <Implementation>
+        <ST><![CDATA[(*输入保护*)
+IF btn_UserPhaseUpperMove THEN
+	IF NOT inRange_UserPhaseUpperPositionNew THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=809;
+		ErrorDescription:='target PhaseUpper position out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseUpperStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';	
+	END_IF
+	IF NOT inRange_UserPhaseUpperVelocityNew THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=810;
+		ErrorDescription:='target PhaseUpper velocity out of range,please check';
+		RETURN;
+	ELSE
+		btn_UserPhaseUpperStop:=FALSE;
+		Error:=FALSE;
+		ErrorId:=0;
+		ErrorDescription:='';
+	END_IF
+END_IF
+
+(*改变Phase前，先检查Gap，Gap必须处于阈值之上（基本在最大间隙），才能改变Phase*)
+IF GapPhase_ChainProtection_On AND UserGapPositionDisplay-GapPhase_ChainProtection_MaxGapValue<-0.01 AND btn_UserPhaseUpperMove THEN
+		btn_UserPhaseUpperStop:=TRUE;
+		btn_UserPhaseUpperMove:=FALSE;
+		Error:=TRUE;
+		ErrorId:=811;
+		ErrorDescription:='Please Move Gap to MaxGapValue first before move Phase';
+		RETURN;
+END_IF
+
+(*Move*)
+IF InitPowerDone THEN
+	(*
+	零位特殊走法入口。
+
+	触发条件：
+	1. 用户按下 PhaseUpper Move；
+	2. 当前没有执行过本次零位预走；
+	3. 当前没有正在执行零位预走；
+	4. 原 m/n 状态机都在空闲状态；
+	5. 当前位置在零附近。
+
+	重要说明：
+	这里不提前判断正向/负向是否要走回程差。
+	零位预走完成后，会重新进入原来的 m/n 判断。
+	因此目标为负方向，例如 -10mm 时，流程是：
+	0附近 -> 以慢速到 -ZeroBoundary -> 再进入原 n_state 回程差逻辑。
+	*)
+	IF btn_UserPhaseUpperMove
+		AND EnableZeroPre_PhaseUpper
+		AND NOT ZeroPreDone_PhaseUpper
+		AND NOT ZeroPreMoving_PhaseUpper
+		AND m_state_PhaseUpper=0
+		AND n_state_PhaseUpper=0
+		AND ABS(Pos_PhaseUpperLin)<=ZeroNearThreshold_PhaseUpper THEN
+
+		IF NOT st_Power THEN
+			ErrorID:=1501;
+			Error:=TRUE;
+			ErrorDescription:='Plz PowerOn Frist';
+			LED_Error:=TRUE;
+			RETURN;
+		ELSE
+			ErrorID:=0;
+			Error:=FALSE;
+			ErrorDescription:='';
+			LED_Error:=FALSE;
+		END_IF
+
+		(*锁存本次用户目标和速度，避免零位慢速段期间 HMI 输入变化影响本次运动。*)
+		ZeroFinalTarget_PhaseUpper:=UserPhaseUpperPositionNew;
+		ZeroFinalVelocity_PhaseUpper:=UserPhaseUpperVelocityNew;
+
+		(*
+		如果目标在 +/-ZeroBoundary_PhaseUpper 内：
+		直接以 ZeroSlowVelocity_PhaseUpper 走到最终目标，本次运动结束。
+		如果目标超过边界：
+		先以 ZeroSlowVelocity_PhaseUpper 走到 +ZeroBoundary 或 -ZeroBoundary。
+		走完后再进入原 m/n 正常逻辑，保留回程差判断。
+		*)
+		IF ABS(ZeroFinalTarget_PhaseUpper)<=ZeroBoundary_PhaseUpper THEN
+			ZeroPreTarget_PhaseUpper:=ZeroFinalTarget_PhaseUpper;
+			ZeroDirectMove_PhaseUpper:=TRUE;
+		ELSE
+			IF ZeroFinalTarget_PhaseUpper>ZeroBoundary_PhaseUpper THEN
+				ZeroPreTarget_PhaseUpper:=ZeroBoundary_PhaseUpper;
+			ELSE
+				ZeroPreTarget_PhaseUpper:=-ZeroBoundary_PhaseUpper;
+			END_IF
+			ZeroDirectMove_PhaseUpper:=FALSE;
+		END_IF
+
+		ZeroPreMoving_PhaseUpper:=TRUE;
+		z_state_PhaseUpper:=10;
+	END_IF
+
+	IF ZeroPreMoving_PhaseUpper THEN
+		CASE z_state_PhaseUpper OF
+			10:
+				(*
+				零位预走发命令。
+				这里的目标一定是：
+				1. 边界内目标：最终目标；
+				2. 边界外目标：+ZeroBoundary 或 -ZeroBoundary。
+				速度固定使用 ZeroSlowVelocity_PhaseUpper。
+				*)
+				FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+				FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+				FB_Move_PhaseUpper.PowerState:=st_Power;			
+				FB_Move_PhaseUpper.PhaseUpperPosition:=ZeroPreTarget_PhaseUpper;
+				FB_Move_PhaseUpper.PhaseUpperVelocity:=ZeroSlowVelocity_PhaseUpper;
+				FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+				btn_UserPhaseUpperMove:=FALSE;
+				Led_Run:=TRUE;
+				FB_Move_PhaseUpper();
+				z_state_PhaseUpper:=11;
+
+			11:
+				(*等待零位预走到位。*)
+				btn_UserPhaseUpperMove:=FALSE;
+				FB_Move_PhaseUpper();
+				IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN
+					Led_Run:=TRUE;
+					z_state_PhaseUpper:=11;
+				ELSE
+					(*
+					到位后先撤掉 Move 信号。
+					下一拍再决定是结束，还是进入原 m/n 正常逻辑。
+					这样和原 n_state 两段运动的处理方式一致：两段之间给 FB 一个 Move=FALSE 的间隔。
+					*)
+					FB_Move_PhaseUpper.PhaseUpperMove:=FALSE;
+					FB_Move_PhaseUpper();
+					z_state_PhaseUpper:=12;
+				END_IF
+
+			12:
+				(*
+				零位预走完成后的分流。
+
+				ZeroDirectMove_PhaseUpper=TRUE：
+					目标本来就在 +/-ZeroBoundary 内，慢速走到目标后本次运动直接结束。
+				ZeroDirectMove_PhaseUpper=FALSE：
+					目标超过边界，只完成了“慢速离开零位”。
+					此时设置 ZeroPreDone=TRUE，并重新置 btn_UserPhaseUpperMove=TRUE。
+					下一扫描周期会跳过零位预走入口，进入原 m/n 正常逻辑。
+				*)
+				FB_Move_PhaseUpper.PhaseUpperMove:=FALSE;
+				FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;
+				FB_Move_PhaseUpper();
+
+				IF ZeroDirectMove_PhaseUpper THEN
+					z_state_PhaseUpper:=88;
+				ELSE
+					ZeroPreMoving_PhaseUpper:=FALSE;
+					ZeroPreDone_PhaseUpper:=TRUE;
+					btn_UserPhaseUpperMove:=TRUE;
+					Led_Run:=FALSE;
+					z_state_PhaseUpper:=0;
+				END_IF
+
+			88:
+				(*零位直达目标的收尾。*)
+				btn_UserPhaseUpperMove:=FALSE;
+				FB_Move_PhaseUpper.PhaseUpperMove:=FALSE;
+				FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;
+				Led_Run:=FALSE;
+				z_state_PhaseUpper:=0;
+				ZeroPreMoving_PhaseUpper:=FALSE;
+				ZeroPreDone_PhaseUpper:=FALSE;
+				ZeroDirectMove_PhaseUpper:=FALSE;
+		END_CASE
+
+	ELSE
+		(*
+		原 m/n 正常逻辑。
+		重要说明：
+		如果刚执行完零位预走，ZeroPreDone_PhaseUpper=TRUE，
+		这里使用锁存的 ZeroFinalTarget/ZeroFinalVelocity。
+		否则仍使用 HMI 当前给定的 UserPhaseUpperPositionNew/UserPhaseUpperVelocityNew。
+		*)
+		IF ZeroPreDone_PhaseUpper THEN
+			ActiveTarget_PhaseUpper:=ZeroFinalTarget_PhaseUpper;
+			ActiveVelocity_PhaseUpper:=ZeroFinalVelocity_PhaseUpper;
+		ELSE
+			ActiveTarget_PhaseUpper:=UserPhaseUpperPositionNew;
+			ActiveVelocity_PhaseUpper:=UserPhaseUpperVelocityNew;
+		END_IF
+
+		(*分别比较四轴目标位置与当前位置的差，如果目标位置比当前位置低，则需要运动到更低-回程差一半；再运动至最终目标位置*)
+		//只在m=和n=0的时候判断，否则会出现一些BUG，比如往大间隙开时，运动到位后m不能回到0.
+		IF m_state_PhaseUpper=0 AND n_state_PhaseUpper=0 THEN
+			IF ActiveTarget_PhaseUpper-Pos_PhaseUpperLin<-LEDriftErrorThreshold_PhaseUpper THEN
+					TargetPosLessThanCurrentPos_PhaseUpper:=TRUE;
+			ELSE
+					TargetPosLessThanCurrentPos_PhaseUpper:=FALSE;
+			END_IF
+		END_IF
+
+		(*目标位置大于当前位置，直接走到目标位置，不需要先走到考虑回程误差的临时位置。*)
+		IF NOT TargetPosLessThanCurrentPos_PhaseUpper AND NOT HysteresisMoving_PhaseUpper THEN
+			CASE m_state_PhaseUpper OF
+				0:
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;	
+					IF btn_UserPhaseUpperMove THEN						
+						IF NOT st_Power THEN
+							ErrorID:=1501;
+							Error:=TRUE;
+							ErrorDescription:='Plz PowerOn Frist';
+							LED_Error:=TRUE;
+							RETURN;
+						ELSE
+							ErrorID:=0;
+							Error:=FALSE;
+							ErrorDescription:='';
+							LED_Error:=FALSE;
+						END_IF
+						//目标速度位置赋值
+						FB_Move_PhaseUpper.PhaseUpperPosition:=ActiveTarget_PhaseUpper;
+						FB_Move_PhaseUpper.PhaseUpperVelocity:=ActiveVelocity_PhaseUpper;		
+						//Move
+						FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+						m_state_PhaseUpper:=1;
+						FB_Move_PhaseUpper();
+					END_IF
+
+				1:
+					btn_UserPhaseUpperMove:=FALSE;
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*运动未完成，循环等待*)
+						Led_Run:=TRUE;
+						m_state_PhaseUpper:=1;
+					ELSE									(*运动完成，进入收尾*)
+						m_state_PhaseUpper:=88;
+					END_IF
+
+				88:
+					btn_UserPhaseUpperMove:=FALSE;					(*状态恢复*)
+					Led_Run:=FALSE;
+					m_state_PhaseUpper:=0;
+					ZeroPreDone_PhaseUpper:=FALSE;
+					ZeroPreMoving_PhaseUpper:=FALSE;
+					ZeroDirectMove_PhaseUpper:=FALSE;
+					z_state_PhaseUpper:=0;
+			END_CASE
+
+		(*目标位置小于当前位置，保留原回程差逻辑：先走到临时位置，再走到最终位置。*)
+		ELSE
+			CASE n_state_PhaseUpper OF
+				0:
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode;5:userMode_2
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;			
+					IF btn_UserPhaseUpperMove THEN
+						IF NOT st_Power THEN
+							ErrorID:=1501;
+							Error:=TRUE;
+							ErrorDescription:='Plz PowerOn Frist';
+							LED_Error:=TRUE;
+							RETURN;
+						ELSE
+							ErrorID:=0;
+							Error:=FALSE;
+							ErrorDescription:='';
+							LED_Error:=FALSE;
+						END_IF
+
+						IF TargetPosLessThanCurrentPos_PhaseUpper THEN			
+							FB_Move_PhaseUpper.PhaseUpperPosition:=ActiveTarget_PhaseUpper-HysteresisError_PhaseUpper;
+						ELSE
+							FB_Move_PhaseUpper.PhaseUpperPosition:=ActiveTarget_PhaseUpper;	
+						END_IF				
+
+						(*
+						锁定最终目标。
+						原程序这里锁 UserPhaseUpperPositionNewTemp，是为了避免运动过程中目标输入变化。
+						这里改为锁 ActiveTarget_PhaseUpper：
+						- 普通运动时 ActiveTarget=UserPhaseUpperPositionNew；
+						- 零位预走后 ActiveTarget=ZeroFinalTarget_PhaseUpper。
+						*)
+						UserPhaseUpperPositionNewTemp:=ActiveTarget_PhaseUpper;
+						FB_Move_PhaseUpper.PhaseUpperVelocity:=ActiveVelocity_PhaseUpper;
+						
+						FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+						FB_Move_PhaseUpper();
+						HysteresisMoving_PhaseUpper:=TRUE;
+						n_state_PhaseUpper:=1;
+					END_IF
+
+				1:
+					btn_UserPhaseUpperMove:=FALSE;
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*还未运动到临时位置，运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseUpper:=1;
+					ELSE									
+						n_state_PhaseUpper:=2;							(*转到下一步，运动到最终位置*)
+						FB_Move_PhaseUpper.PhaseUpperMove:=FALSE;
+					END_IF
+
+				2:
+					FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;
+					FB_Move_PhaseUpper.Mode:=4;						//1.gap;2.single;3.taper;4.debug;5.BCGap&UserMode
+					FB_Move_PhaseUpper.CoupleState:=st_Couple;			
+					FB_Move_PhaseUpper.PowerState:=st_Power;			
+					FB_Move_PhaseUpper.PhaseUpperMove:=TRUE;
+					//直接走到最终目标。最终目标已在 n_state=0 中锁存到 UserPhaseUpperPositionNewTemp。
+					FB_Move_PhaseUpper.PhaseUpperPosition:=UserPhaseUpperPositionNewTemp;	
+					FB_Move_PhaseUpper.PhaseUpperVelocity:=ActiveVelocity_PhaseUpper;
+					FB_Move_PhaseUpper();							
+					n_state_PhaseUpper:=3;
+
+				3:
+					FB_Move_PhaseUpper();
+					IF NOT FB_Move_PhaseUpper.PhaseUpperDone THEN			(*还未运动到最终位置，运动过程中*)
+						Led_Run:=TRUE;
+						n_state_PhaseUpper:=3;
+					ELSE									
+						n_state_PhaseUpper:=88;							(*运动到了最终位置*)
+					END_IF
+
+				88:
+					btn_UserPhaseUpperMove:=FALSE;					
+					Led_Run:=FALSE;
+					n_state_PhaseUpper:=0;
+					HysteresisMoving_PhaseUpper:=FALSE;
+					ZeroPreDone_PhaseUpper:=FALSE;
+					ZeroPreMoving_PhaseUpper:=FALSE;
+					ZeroDirectMove_PhaseUpper:=FALSE;
+					z_state_PhaseUpper:=0;
+			END_CASE
+		END_IF
+	END_IF
+END_IF
+
+IF btn_UserPhaseUpperStop THEN
+	FB_Move_PhaseUpper.PhaseUpperReset:=TRUE;							(*给运动FB停止/复位信号，使FB_Move状态恢复*)
+	FB_Move_PhaseUpper();											(*启动FB_Move*)
+	btn_UserPhaseUpperMove:=FALSE;
+	m_state_PhaseUpper:=0;	
+	n_state_PhaseUpper:=0;
+
+	(*Stop 时必须同时清零位预走相关状态，避免停止后残留在特殊流程中。*)
+	z_state_PhaseUpper:=0;
+	ZeroPreMoving_PhaseUpper:=FALSE;
+	ZeroPreDone_PhaseUpper:=FALSE;
+	ZeroDirectMove_PhaseUpper:=FALSE;
+
+	CASE s_state_PhaseUpper OF
+			0:
+				FB_Stop_PhaseUpper.Mode:=4;							(*1:gap模式; 2:单梁模式; 3:taper模式; 4:Debug模式; 5:BCGap模式*)
+				FB_Stop_PhaseUpper.CoupleState:=st_Couple;			(*耦合状态输入*)
+				FB_Stop_PhaseUpper.PowerState:=st_Power;				(*电源状态输入*)
+				FB_Stop_PhaseUpper.PhaseUpperStop:=TRUE;				(*Execute TRUE*)
+				FB_Stop_PhaseUpper();								(*启动FB*)
+				s_state_PhaseUpper:=1;
+			1:
+				FB_Stop_PhaseUpper();
+				IF NOT FB_Stop_PhaseUpper.PhaseUpperDone THEN			(*停止未完成，循环*)
+					s_state_PhaseUpper:=1;
+				ELSE									(*停止完成，下一步*)
+					s_state_PhaseUpper:=88;
+				END_IF
+			88:
+				btn_UserPhaseUpperStop:=FALSE;						(*恢复状态*)
+				FB_Move_PhaseUpper.PhaseUpperReset:=FALSE;				(*运行FB*)
+				s_state_PhaseUpper:=0;
+		END_CASE
+END_IF
+
+(*触发限位开关后，相当于点击了Stop按钮*)
+FTrig_ReachLS_PhaseUpper(CLK:=LS_PhaseUpper_Entrance AND LS_PhaseUpper_Exit);
+IF FTrig_ReachLS_PhaseUpper.Q THEN
+	btn_UserPhaseUpperStop:=TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PhaseUpperMotion_1" Id="{e4b83f58-f77a-4261-b358-cc7f547c3bea}">
       <Implementation>
         <ST><![CDATA[(*输入保护*)
 IF btn_UserPhaseUpperMove THEN
@@ -2215,6 +3082,10 @@ END_IF
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_PhaseLowerMotion">
+      <LineId Id="353" Count="386" />
+      <LineId Id="199" Count="0" />
+    </LineIds>
+    <LineIds Name="UserMode.A_PhaseLowerMotion_1">
       <LineId Id="225" Count="0" />
       <LineId Id="239" Count="0" />
       <LineId Id="219" Count="0" />
@@ -2261,6 +3132,13 @@ END_IF
       <LineId Id="199" Count="0" />
     </LineIds>
     <LineIds Name="UserMode.A_PhaseUpperMotion">
+      <LineId Id="392" Count="85" />
+      <LineId Id="479" Count="64" />
+      <LineId Id="545" Count="33" />
+      <LineId Id="580" Count="199" />
+      <LineId Id="199" Count="0" />
+    </LineIds>
+    <LineIds Name="UserMode.A_PhaseUpperMotion_1">
       <LineId Id="225" Count="0" />
       <LineId Id="239" Count="0" />
       <LineId Id="219" Count="0" />

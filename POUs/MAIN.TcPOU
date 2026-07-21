@@ -1282,8 +1282,21 @@ CASE m_GetDriveStatusState OF
 			AND DriveDiagNumber_LeftBottom=16#D014 AND DriveDiagNumber_RightBottom=16#D014
 			AND DriveDiagNumber_PhaseUpper=16#D014 AND DriveDiagNumber_PhaseLower=16#D014 THEN
 			DriveStatus:=3;
+		//ECD2,Amplifier overload utilisation warning.该项属于Phase方向warning，从Error中撤出
+		ELSIF DriveDiagNumber_PhaseUpper=16#ECD2 AND DriveDiagNumber_PhaseLower=16#ECD2 THEN
+			DriveStatus:=4;
+			Warning:=TRUE;
+			WarningId:=100;
+			WarningDescription:='Amplifier overload utilisation warning';
 		ELSE
 			DriveStatus:=0;
+		END_IF
+		//Warning reset
+		IF btn_WarningReset THEN
+			Warning:=FALSE;
+			WarningId:=0;
+			WarningDescription:='';
+			btn_WarningReset:=FALSE;
 		END_IF
 		//
 		//
@@ -12557,7 +12570,18 @@ END_CASE
       <LineId Id="423" Count="0" />
       <LineId Id="348" Count="3" />
       <LineId Id="424" Count="0" />
-      <LineId Id="352" Count="10" />
+      <LineId Id="352" Count="1" />
+      <LineId Id="449" Count="1" />
+      <LineId Id="448" Count="0" />
+      <LineId Id="453" Count="2" />
+      <LineId Id="354" Count="2" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="456" Count="0" />
+      <LineId Id="459" Count="1" />
+      <LineId Id="457" Count="0" />
+      <LineId Id="461" Count="0" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="357" Count="5" />
       <LineId Id="425" Count="1" />
       <LineId Id="363" Count="3" />
       <LineId Id="427" Count="1" />

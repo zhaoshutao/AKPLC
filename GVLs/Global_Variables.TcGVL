@@ -21,6 +21,11 @@ btn_Reset:BOOL;
 	Error:BOOL;
 	ErrorID:DINT;
 	ErrorDescription:STRING;
+(*Error Massage*)
+	Warning:BOOL;
+	WarningID:DINT;
+	WarningDescription:STRING;
+	btn_WarningReset:BOOL;
 (*加载配方参数*)
 	LoadRecipeParameters:BOOL;
 	loadParametersDone:BOOL;
